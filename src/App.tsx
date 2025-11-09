@@ -1,43 +1,69 @@
-import { Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import fptTheme from './theme/theme';
 
-// Auth & Layouts
-import LoginPage from './pages/Auth/LoginPage';
-import ProtectedRoute from './routes/ProtectedRoute';
+// Layouts
 import StudentLayout from './layouts/StudentLayout';
 
+// Auth
+import LoginPage from './pages/Auth/LoginPage';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 // Student Pages
 import HomePage from './pages/Student/HomePage';
 import LessonPage from './pages/Student/LessonPage';
 import TestSessionPage from './pages/Student/TestSessionPage';
 import TestResultPage from './pages/Student/TestResultPage';
+import ProfilePage from './pages/Student/ProfilePage';
 
+// Import auth store
+import { useAuthStore } from './store/authStore';
 
+const App: React.FC = () => {
+  const { isAuthenticated } = useAuthStore();
 
-function App() {
   return (
-    <Routes>
-      {/* Trang Public */}
-      <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider theme={fptTheme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Routes>
+          {/* Public Route */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            }
+          />
 
-      {/* --- Luồng STUDENT --- */}
-      {/* Route 1 (Cha): Kiểm tra quyền 'student'. Nếu OK, render <Outlet /> 
-      */}
-      <Route element={<ProtectedRoute allowedRoles={['student']} />}>
-        {/* Route 2 (Con): Hiển thị layout (thanh navbar, v.v.). 
-          Bản thân nó cũng render <Outlet /> để hiển thị nội dung trang
-        */}
-        <Route element={<StudentLayout />}>
-          {/* Route 3 (Cháu): Đây là các trang nội dung thực tế
-          */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/lesson/:id" element={<LessonPage />} />
-          <Route path="/test/:testId" element={<TestSessionPage />} />
-          <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
-        </Route>
-      </Route>
-    </Routes>
+          {/* Protected Student Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route element={<StudentLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/lesson/:id" element={<LessonPage />} />
+              <Route path="/test/:testId" element={<TestSessionPage />} />
+              <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+          </Route>
+
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            {/* Admin routes sẽ được thêm sau */}
+            <Route path="/admin/*" element={<div>Admin Dashboard (Coming Soon)</div>} />
+          </Route>
+
+          {/* Catch all - redirect to home or login */}
+          <Route
+            path="*"
+            element={
+              <Navigate to={isAuthenticated ? '/' : '/login'} replace />
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
