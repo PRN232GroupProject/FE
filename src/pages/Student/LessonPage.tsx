@@ -118,8 +118,9 @@ const LessonPage: React.FC = () => {
               overflow: 'hidden',
             }}
           >
+
             <ReactPlayer
-              url={selectedResource.url}
+              src={selectedResource.url}
               controls
               width="100%"
               height="100%"
