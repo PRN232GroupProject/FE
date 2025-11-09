@@ -16,6 +16,8 @@ import LessonPage from './pages/Student/LessonPage';
 import TestSessionPage from './pages/Student/TestSessionPage';
 import TestResultPage from './pages/Student/TestResultPage';
 import ProfilePage from './pages/Student/ProfilePage';
+import TestListPage from './pages/Student/TestListPage';
+import ResourcesPage from './pages/Student/ResourcesPage';
 
 // Import auth store
 import { useAuthStore } from './store/authStore';
@@ -41,6 +43,8 @@ const App: React.FC = () => {
             <Route element={<StudentLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/lesson/:id" element={<LessonPage />} />
+              <Route path="/tests" element={<TestListPage />} />
+              <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/test/:testId" element={<TestSessionPage />} />
               <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
               <Route path="/profile" element={<ProfilePage />} />
