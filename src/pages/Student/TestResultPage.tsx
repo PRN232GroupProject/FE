@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ITestResult, ITestAnswerDetail } from '../../types/test.types';
+import type { ITestResult, ITestAnswerDetail } from '../../types/test.types';
 import {
   Box,
   Typography,
   CircularProgress,
   Paper,
-  Grid,
   Chip,
   Divider,
 } from '@mui/material';

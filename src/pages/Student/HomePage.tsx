@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IChapter } from '../../types/content.types';
+import type { IChapter } from '../../types/content.types';
 import {
   Accordion,
   AccordionSummary,

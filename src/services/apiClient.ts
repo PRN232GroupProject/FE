@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../src/store/authStore';
 
 const apiClient = axios.create({
   baseURL: '/api', // BE của bạn sẽ chạy trên /api
