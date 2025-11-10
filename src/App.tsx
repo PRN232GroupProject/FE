@@ -16,6 +16,8 @@ import TestResultPage from './pages/Student/TestResultPage';
 import ProfilePage from './pages/Student/ProfilePage';
 import TestListPage from './pages/Student/TestListPage';
 import ResourcesPage from './pages/Student/ResourcesPage';
+import LessonListPage from './pages/Student/LessonListPage'; // <-- FILE MỚI
+import StudentResultsPage from './pages/Student/StudentResultsPage'; // <-- FILE MỚI
 
 // Import auth store
 import { useAuthStore } from './store/authStore';
@@ -24,42 +26,45 @@ const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
 
   return (
-        <Routes>
-          {/* Public Route */}
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
-            }
-          />
+    // <ThemeProvider> và <CssBaseline> đã ở main.tsx
+    <Routes>
+      {/* Public Route */}
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+        }
+      />
 
-          {/* Protected Student Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
-            <Route element={<StudentLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/lesson/:id" element={<LessonPage />} />
-              <Route path="/tests" element={<TestListPage />} />
-              <Route path="/resources" element={<ResourcesPage />} />
-              <Route path="/test/:testId" element={<TestSessionPage />} />
-              <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-            </Route>
-          </Route>
+      {/* Protected Student Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+        <Route element={<StudentLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/lessons" element={<LessonListPage />} /> {/* <-- ROUTE MỚI */}
+          <Route path="/lesson/:id" element={<LessonPage />} />
+          <Route path="/tests" element={<TestListPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/results" element={<StudentResultsPage />} /> {/* <-- ROUTE MỚI */}
+          <Route path="/test/:testId" element={<TestSessionPage />} />
+          <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
 
-          {/* Protected Admin Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            {/* Admin routes sẽ được thêm sau */}
-            <Route path="/admin/*" element={<div>Admin Dashboard (Coming Soon)</div>} />
-          </Route>
+      {/* Protected Admin Routes */}
+      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+        {/* Admin routes sẽ được thêm sau */}
+        <Route path="/admin/*" element={<div>Admin Dashboard (Coming Soon)</div>} />
+      </Route>
 
-          {/* Catch all - redirect to home or login */}
-          <Route
-            path="*"
-            element={
-              <Navigate to={isAuthenticated ? '/' : '/login'} replace />
-            }
-          />
-        </Routes>
+      {/* Catch all - redirect to home or login */}
+      <Route
+        path="*"
+        element={
+          <Navigate to={isAuthenticated ? '/' : '/login'} replace />
+        }
+      />
+    </Routes>
   );
 };
 

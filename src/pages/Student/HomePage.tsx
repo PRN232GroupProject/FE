@@ -11,18 +11,23 @@ import {
   alpha,
   LinearProgress,
   Stack,
+  TextField,
+  InputAdornment,
+  ListItemButton,
 } from '@mui/material';
 import {
   School as SchoolIcon,
   PlayCircleOutline as PlayIcon,
   CheckCircle as CheckIcon,
   MenuBook as BookIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
   const [chapters, setChapters] = useState<IChapter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchChapters = async () => {
@@ -102,6 +107,10 @@ const HomePage: React.FC = () => {
     );
   }
 
+  const filteredChapters = chapters.filter((chapter) =>
+    chapter.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Box>
       <Box
@@ -163,21 +172,48 @@ const HomePage: React.FC = () => {
         />
       </Box>
 
-      {/* Chapters Grid */}
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-        Danh sách Chương học
-      </Typography>
-
+      {/* Header và Thanh Search */}
       <Box
-        display="grid"
-        gap={3} 
-        gridTemplateColumns={{
-          xs: '1fr', 
-          sm: '1fr 1fr', 
-          lg: '1fr 1fr 1fr', 
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
         }}
       >
-        {chapters.map((chapter) => {
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 0 }}>
+          Danh sách Chương học
+        </Typography>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Tìm kiếm chương học..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: { sm: 300 } }}
+        />
+      </Box>
+
+      {/* Chapters Grid */}
+      <Box
+        display="grid"
+        gap={3}
+        gridTemplateColumns={{
+          xs: '1fr',
+          sm: '1fr 1fr',
+          lg: '1fr 1fr 1fr',
+        }}
+      >
+        {filteredChapters.map((chapter) => {
           const completedLessons = Math.floor(Math.random() * chapter.lessons.length);
           const progress = (completedLessons / chapter.lessons.length) * 100;
 
@@ -253,7 +289,14 @@ const HomePage: React.FC = () => {
                 </Typography>
               </Box>
 
-              <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
+              <CardContent
+                sx={{
+                  flexGrow: 1,
+                  p: 2.5,
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
                 <Typography
                   variant="body2"
                   color="text.secondary"
@@ -262,16 +305,24 @@ const HomePage: React.FC = () => {
                   {chapter.description}
                 </Typography>
 
-                <Box sx={{ mb: 2 }}>
+                {/* Box này sẽ co giãn để đẩy nút xuống */}
+                <Box sx={{ mb: 2, flexGrow: 1 }}>
                   {chapter.lessons.map((lesson, idx) => (
-                    <Box
+                    <ListItemButton
                       key={lesson.id}
+                      component={RouterLink}
+                      to={`/lesson/${lesson.id}`}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
                         py: 1,
+                        px: 1,
+                        borderRadius: 2,
                         borderBottom: idx < chapter.lessons.length - 1 ? 1 : 0,
                         borderColor: 'divider',
+                        '&:hover': {
+                          bgcolor: alpha('#FF6C00', 0.05),
+                        },
                       }}
                     >
                       {idx < completedLessons ? (
@@ -294,18 +345,19 @@ const HomePage: React.FC = () => {
                       >
                         {lesson.title}
                       </Typography>
-                    </Box>
+                    </ListItemButton>
                   ))}
                 </Box>
 
                 <Button
                   component={RouterLink}
+                  // Bấm nút này sẽ đi đến bài học ĐẦU TIÊN
                   to={`/lesson/${chapter.lessons[0].id}`}
                   variant="contained"
                   fullWidth
                   startIcon={<PlayIcon />}
                   sx={{
-                    mt: 'auto',
+                    mt: 'auto', // Giữ nút ở cuối
                     borderRadius: 2,
                     py: 1.2,
                     fontWeight: 600,
@@ -318,6 +370,15 @@ const HomePage: React.FC = () => {
           );
         })}
       </Box>
+
+      {filteredChapters.length === 0 && (
+        <Box textAlign="center" py={8}>
+          <SearchIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">
+            Không tìm thấy chương học nào
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
