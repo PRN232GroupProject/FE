@@ -11,7 +11,7 @@ import {
   CardContent,
   Button,
   alpha,
-  Grid,
+  // Grid, // Không cần Grid ở đây nữa
   Stack,
   Divider,
 } from '@mui/material';
@@ -63,8 +63,16 @@ const AnswerDetail: React.FC<{ answer: ITestAnswerDetail; index: number }> = ({ 
           {answer.content}
         </Typography>
         
-        {/* Hiển thị các lựa chọn */}
-        <Grid container spacing={2} sx={{ my: 2 }}>
+        {/* === SỬA LỖI GRID (LỖI TRONG HÌNH): Thay <Grid container> bằng <Box display="grid"> === */}
+        <Box 
+          display="grid"
+          gap={2} // Tương đương spacing={2}
+          sx={{ my: 2 }}
+          gridTemplateColumns={{
+            xs: '1fr', // 1 cột
+            sm: '1fr 1fr', // 2 cột (tương đương sm={6})
+          }}
+        >
           {Object.entries(answer.options).map(([key, value]) => {
             const isSelected = answer.selectedAnswer === key;
             const isCorrect = answer.correctAnswer === key;
@@ -85,29 +93,31 @@ const AnswerDetail: React.FC<{ answer: ITestAnswerDetail; index: number }> = ({ 
             }
 
             return (
-              <Grid item xs={12} sm={6} key={key}>
-                <Paper
-                  elevation={isSelected || isCorrect ? 3 : 1}
-                  sx={{
-                    p: 2,
-                    border: 2,
-                    borderColor,
-                    bgcolor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  {isCorrect && <CheckCircleIcon sx={{ color: 'success.main' }} />}
-                  {isSelected && !isCorrect && <CancelIcon sx={{ color: 'error.main' }} />}
-                  <Typography sx={{ fontWeight: isSelected || isCorrect ? 600 : 400, color }}>
-                    {key}. {value}
-                  </Typography>
-                </Paper>
-              </Grid>
+              // <Grid item ...> ĐÃ BỊ XÓA
+              <Paper
+                key={key} // key được chuyển vào đây
+                elevation={isSelected || isCorrect ? 3 : 1}
+                sx={{
+                  p: 2,
+                  border: 2,
+                  borderColor,
+                  bgcolor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                {isCorrect && <CheckCircleIcon sx={{ color: 'success.main' }} />}
+                {isSelected && !isCorrect && <CancelIcon sx={{ color: 'error.main' }} />}
+                <Typography sx={{ fontWeight: isSelected || isCorrect ? 600 : 400, color }}>
+                  {key}. {value}
+                </Typography>
+              </Paper>
+              // </Grid>
             );
           })}
-        </Grid>
+        </Box>
+        {/* === HẾT PHẦN SỬA LỖI === */}
 
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
           <Chip
@@ -285,43 +295,49 @@ const TestResultPage: React.FC = () => {
             {result.sessionDetails.testName}
           </Typography>
           
-          <Grid container spacing={3} sx={{ mt: 2 }}>
-            <Grid item xs={12} sm={4}>
-              <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-                <AssessmentIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                  {result.score.toFixed(1)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Điểm số
-                </Typography>
-              </Paper>
-            </Grid>
+          {/* 3 Thẻ điểm (Đã sửa ở lần trước) */}
+          <Box
+            display="grid"
+            gap={3}
+            gridTemplateColumns={{
+              xs: '1fr',
+              sm: '1fr 1fr 1fr',
+            }}
+            sx={{ mt: 2 }}
+          >
+            {/* Thẻ 1 */}
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+              <AssessmentIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                {result.score.toFixed(1)}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Điểm số
+              </Typography>
+            </Paper>
             
-            <Grid item xs={12} sm={4}>
-              <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-                <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-                <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
-                  {result.totalCorrect}/{totalQuestions}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Số câu đúng
-                </Typography>
-              </Paper>
-            </Grid>
+            {/* Thẻ 2 */}
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+              <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
+                {result.totalCorrect}/{totalQuestions}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Số câu đúng
+              </Typography>
+            </Paper>
             
-            <Grid item xs={12} sm={4}>
-              <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-                <TrophyIcon sx={{ fontSize: 40, color: 'secondary.main', mb: 1 }} />
-                <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main' }}>
-                  {percentCorrect.toFixed(0)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Tỷ lệ đúng
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
+            {/* Thẻ 3 */}
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+              <TrophyIcon sx={{ fontSize: 40, color: 'secondary.main', mb: 1 }} />
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main' }}>
+                {percentCorrect.toFixed(0)}%
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Tỷ lệ đúng
+              </Typography>
+            </Paper>
+          </Box>
 
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
             <Button

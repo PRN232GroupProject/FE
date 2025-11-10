@@ -11,6 +11,8 @@ import {
   alpha,
   Stack,
   Paper,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import {
   Quiz as QuizIcon,
@@ -19,13 +21,14 @@ import {
   PlayArrow as PlayArrowIcon,
   EmojiEvents as TrophyIcon,
   Assessment as AssessmentIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 
 interface ITest {
   id: number;
   name: string;
   type: string;
-  duration: number; // phút
+  duration: number; 
   totalQuestions: number;
   chapterId: number;
   chapterName: string;
@@ -42,6 +45,7 @@ const TestListPage: React.FC = () => {
   const [tests, setTests] = useState<ITest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'not-completed'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -176,12 +180,16 @@ const TestListPage: React.FC = () => {
     }
   };
 
-  const filteredTests = tests.filter((test) => {
-    if (filter === 'all') return true;
-    if (filter === 'completed') return test.lastAttempt?.completed;
-    if (filter === 'not-completed') return !test.lastAttempt?.completed;
-    return true;
-  });
+  const filteredTests = tests
+    .filter((test) => {
+      if (filter === 'all') return true;
+      if (filter === 'completed') return test.lastAttempt?.completed;
+      if (filter === 'not-completed') return !test.lastAttempt?.completed;
+      return true;
+    })
+    .filter((test) =>
+      test.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   if (loading) {
     return (
@@ -222,13 +230,12 @@ const TestListPage: React.FC = () => {
 
         <Box
           display="grid"
-          gap={2} 
+          gap={2}
           gridTemplateColumns={{
-            xs: '1fr', // 1 cột
-            sm: '1fr 1fr 1fr', // 3 cột
+            xs: '1fr',
+            sm: '1fr 1fr 1fr',
           }}
         >
-
           <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
             <QuizIcon sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
             <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
@@ -261,8 +268,17 @@ const TestListPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Filters */}
-      <Box sx={{ mb: 3 }}>
+      {/* Filters and Search */}
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
         <Stack direction="row" spacing={2} flexWrap="wrap">
           <Button
             variant={filter === 'all' ? 'contained' : 'outlined'}
@@ -285,15 +301,30 @@ const TestListPage: React.FC = () => {
             Chưa làm ({tests.length - completedCount})
           </Button>
         </Stack>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Tìm kiếm bài kiểm tra..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: { sm: 300 } }}
+        />
       </Box>
 
       <Box
         display="grid"
-        gap={3} 
+        gap={3}
         gridTemplateColumns={{
-          xs: '1fr', // 1 cột (xs={12})
-          md: '1fr 1fr', // 2 cột (md={6})
-          lg: '1fr 1fr 1fr', // 3 cột (lg={4})
+          xs: '1fr',
+          md: '1fr 1fr',
+          lg: '1fr 1fr 1fr',
         }}
       >
         {filteredTests.map((test) => {
@@ -365,7 +396,8 @@ const TestListPage: React.FC = () => {
               </Box>
 
               <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-                <Stack spacing={2}>
+                {/* Stack này phải co giãn 100% */}
+                <Stack spacing={2} sx={{ height: '100%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TimerIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                     <Typography variant="body2">
@@ -411,13 +443,16 @@ const TestListPage: React.FC = () => {
                     </Box>
                   )}
 
+                  {/* flexGrow: 1 để đẩy các phần trên và nút ra xa nhau */}
+                  <Box sx={{ flexGrow: 1 }} />
+
                   <Button
                     variant="contained"
                     fullWidth
                     startIcon={<PlayArrowIcon />}
                     onClick={() => navigate(`/test/${test.id}`)}
                     sx={{
-                      mt: 'auto',
+                      mt: 'auto', // Đảm bảo nút ở cuối
                       borderRadius: 2,
                       py: 1.2,
                       fontWeight: 600,
@@ -431,6 +466,15 @@ const TestListPage: React.FC = () => {
           );
         })}
       </Box>
+
+      {filteredTests.length === 0 && (
+        <Box textAlign="center" py={8}>
+          <SearchIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary">
+            Không tìm thấy bài kiểm tra nào
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
