@@ -18,6 +18,7 @@ import {
   Chip,
   Stack,
   alpha,
+  InputAdornment,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -185,16 +186,14 @@ const ProfilePage: React.FC = () => {
         </Alert>
       )}
 
-      {/* === SỬA LỖI GRID: Thay <Grid container> bằng <Box display="grid"> === */}
       <Box
         display="grid"
         gap={3}
         gridTemplateColumns={{
           xs: '1fr',
-          md: '1fr 2fr', // Tương đương md={4} (1/3) và md={8} (2/3)
+          md: '1fr 2fr', 
         }}
       >
-        {/* Thông tin cơ bản (Không cần <Grid item> bọc ngoài) */}
         <Paper
           elevation={3}
           sx={{ p: 3, textAlign: 'center', height: '100%', borderRadius: 3 }}
@@ -357,13 +356,13 @@ const ProfilePage: React.FC = () => {
                   fullWidth
                   disabled={!isEditing}
                   // === SỬA LỖI DEPRECATED: Đổi 'InputProps' thành 'slotProps' ===
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    },
-                  }}
+                 InputProps={{
+    startAdornment: (
+      <InputAdornment position="start">
+        <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
+      </InputAdornment>
+    ),
+  }}
                   {...register('fullName')}
                   error={!!errors.fullName}
                   helperText={errors.fullName?.message}

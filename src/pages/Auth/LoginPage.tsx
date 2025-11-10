@@ -30,7 +30,7 @@ import {
 
 // Định nghĩa validation schema
 const loginSchema = z.object({
-  email: z.string().email('Email không hợp lệ'),
+  email: z.email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
 });
 
@@ -293,7 +293,7 @@ const LoginPage: React.FC = () => {
           align="center"
           sx={{ mt: 3, color: 'white', opacity: 0.9 }}
         >
-          © 2025 FPT Corporation. All rights reserved.
+          © 2025 EHEHE Corporation. All rights reserved.
         </Typography>
       </Container>
     </Box>

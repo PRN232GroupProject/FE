@@ -22,18 +22,18 @@ import {
   CardContent,
   alpha,
   Stack,
-  Grid,
 } from '@mui/material';
 import {
   Timer as TimerIcon,
   CheckCircle as CheckCircleIcon,
-  RadioButtonUnchecked as RadioButtonUncheckedIcon,
   Send as SendIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 
-// Timer Component
-const Timer: React.FC<{ duration: number; onTimeUp: () => void }> = ({ duration, onTimeUp }) => {
+const Timer: React.FC<{ duration: number; onTimeUp: () => void }> = ({
+  duration,
+  onTimeUp,
+}) => {
   const [timeLeft, setTimeLeft] = useState(duration);
 
   useEffect(() => {
@@ -58,7 +58,10 @@ const Timer: React.FC<{ duration: number; onTimeUp: () => void }> = ({ duration,
       sx={{
         background: isLowTime
           ? `linear-gradient(135deg, ${alpha('#F44336', 0.9)}, ${alpha('#E91E63', 0.9)})`
-          : `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)}, ${alpha('#0055A5', 0.9)})`,
+          : `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)}, ${alpha(
+              '#0055A5',
+              0.9,
+            )})`,
         color: 'white',
       }}
     >
@@ -106,14 +109,14 @@ const TestSessionPage: React.FC = () => {
 
       // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
       // try {
-      //   const sessionRes = await testService.startTest(testId);
-      //   setSessionId(sessionRes.data.sessionId);
-      //   const questionsRes = await testService.getTestQuestions(testId);
-      //   const parsedQuestions = questionsRes.data.map(q => ({
-      //     ...q,
-      //     options: JSON.parse(q.options)
-      //   }));
-      //   setQuestions(parsedQuestions);
+      //   const sessionRes = await testService.startTest(testId);
+      //   setSessionId(sessionRes.data.sessionId);
+      //   const questionsRes = await testService.getTestQuestions(testId);
+      //   const parsedQuestions = questionsRes.data.map(q => ({
+      //     ...q,
+      //     options: JSON.parse(q.options)
+      //   }));
+      //   setQuestions(parsedQuestions);
       // } catch (error) { console.error(error) }
       // finally { setLoading(false); }
 
@@ -121,34 +124,59 @@ const TestSessionPage: React.FC = () => {
       setTimeout(() => {
         setSessionId(101);
         const stubQuestions: any[] = [
-          { id: 1, content: 'Dung dịch chất nào sau đây làm quỳ tím hóa xanh?', options: '{"A": "HCl", "B": "NaOH", "C": "NaCl", "D": "H2SO4"}' },
-          { id: 2, content: 'Chất nào sau đây là chất điện li yếu?', options: '{"A": "H2SO4", "B": "Cu(OH)2", "C": "BaCl2", "D": "HNO3"}' },
-          { id: 3, content: 'Dung dịch có pH < 7 làm quỳ tím chuyển sang màu gì?', options: '{"A": "Xanh", "B": "Đỏ", "C": "Tím", "D": "Không màu"}' },
-          { id: 4, content: 'Phản ứng giữa axit và bazơ tạo thành gì?', options: '{"A": "Muối và nước", "B": "Oxit", "C": "Khí H2", "D": "Kim loại"}' },
-          { id: 5, content: 'Công thức hóa học của axit clohidric là gì?', options: '{"A": "H2SO4", "B": "HCl", "C": "HNO3", "D": "CH3COOH"}' },
+          {
+            id: 1,
+            content: 'Dung dịch chất nào sau đây làm quỳ tím hóa xanh?',
+            options: '{"A": "HCl", "B": "NaOH", "C": "NaCl", "D": "H2SO4"}',
+          },
+          {
+            id: 2,
+            content: 'Chất nào sau đây là chất điện li yếu?',
+            options: '{"A": "H2SO4", "B": "Cu(OH)2", "C": "BaCl2", "D": "HNO3"}',
+          },
+          {
+            id: 3,
+            content: 'Dung dịch có pH < 7 làm quỳ tím chuyển sang màu gì?',
+            options: '{"A": "Xanh", "B": "Đỏ", "C": "Tím", "D": "Không màu"}',
+          },
+          {
+            id: 4,
+            content: 'Phản ứng giữa axit và bazơ tạo thành gì?',
+            options: '{"A": "Muối và nước", "B": "Oxit", "C": "Khí H2", "D": "Kim loại"}',
+          },
+          {
+            id: 5,
+            content: 'Công thức hóa học của axit clohidric là gì?',
+            options: '{"A": "H2SO4", "B": "HCl", "C": "HNO3", "D": "CH3COOH"}',
+          },
         ];
-        
-        const parsed = stubQuestions.map(q => ({ ...q, options: JSON.parse(q.options) })) as ITestQuestion[];
+
+        const parsed = stubQuestions.map((q) => ({
+          ...q,
+          options: JSON.parse(q.options),
+        })) as ITestQuestion[];
         setQuestions(parsed);
-        
+
         const initialAnswers: Record<number, string> = {};
-        parsed.forEach(q => { initialAnswers[q.id] = ""; });
+        parsed.forEach((q) => {
+          initialAnswers[q.id] = '';
+        });
         setAnswers(initialAnswers);
-        
+
         setLoading(false);
       }, 1000);
       // ---- HẾT DỮ LIỆU CỨNG ----
     };
     startTest();
   }, [testId]);
-  
+
   const handleAnswerChange = (questionId: number, value: string) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: value,
     }));
   };
-  
+
   const handleSubmitTest = async () => {
     setSubmitting(true);
     setOpenConfirm(false);
@@ -156,11 +184,11 @@ const TestSessionPage: React.FC = () => {
 
     // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
     // try {
-    //   await testService.submitTest(sessionId, answers);
-    //   navigate(`/sessions/${sessionId}/results`);
+    //   await testService.submitTest(sessionId, answers);
+    //   navigate(`/sessions/${sessionId}/results`);
     // } catch (error) {
-    //   console.error("Lỗi nộp bài", error);
-    //   setSubmitting(false);
+    //   console.error("Lỗi nộp bài", error);
+    //   setSubmitting(false);
     // }
 
     // ---- GIẢ LẬP NỘP BÀI (ĐỂ PHÁT TRIỂN UI) ----
@@ -173,7 +201,13 @@ const TestSessionPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh">
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="60vh"
+      >
         <CircularProgress size={60} thickness={4} sx={{ mb: 2 }} />
         <Typography variant="h6" color="text.secondary">
           Đang tải bài kiểm tra...
@@ -182,7 +216,7 @@ const TestSessionPage: React.FC = () => {
     );
   }
 
-  const answeredCount = Object.values(answers).filter(a => a !== "").length;
+  const answeredCount = Object.values(answers).filter((a) => a !== '').length;
   const progress = (answeredCount / questions.length) * 100;
 
   return (
@@ -199,50 +233,70 @@ const TestSessionPage: React.FC = () => {
           borderRadius: 3,
         }}
       >
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
+        {/* === SỬA LỖI GRID: Thay <Grid container> bằng <Box display="grid"> === */}
+        <Box
+          display="grid"
+          gap={2} // Tương đương spacing={2}
+          alignItems="center"
+          gridTemplateColumns={{
+            xs: '1fr', // 1 cột
+            md: '2fr 1fr 1fr', // 3 cột (tương đương 6, 3, 3)
+          }}
+        >
+          {/* <Grid item ...> ĐÃ BỊ XÓA */}
+          <Box>
             <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
               Bài kiểm tra {testId}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Session ID: {sessionId}
             </Typography>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Timer duration={15 * 60} onTimeUp={handleSubmitTest} />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card elevation={2}>
-              <CardContent sx={{ textAlign: 'center', p: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Tiến độ làm bài
-                </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-                  {answeredCount}/{questions.length}
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={progress}
-                  sx={{
-                    height: 8,
+          </Box>
+
+          {/* <Grid item ...> ĐÃ BỊ XÓA */}
+          <Timer duration={15 * 60} onTimeUp={handleSubmitTest} />
+
+          {/* <Grid item ...> ĐÃ BỊ XÓA */}
+          <Card elevation={2}>
+            <CardContent sx={{ textAlign: 'center', p: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Tiến độ làm bài
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}
+              >
+                {answeredCount}/{questions.length}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
+                sx={{
+                  height: 8,
+                  borderRadius: 4,
+                  bgcolor: alpha('#FF6C00', 0.1),
+                  '& .MuiLinearProgress-bar': {
                     borderRadius: 4,
-                    bgcolor: alpha('#FF6C00', 0.1),
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 4,
-                    },
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                  },
+                }}
+              />
+            </CardContent>
+          </Card>
+        </Box>
+        {/* === HẾT PHẦN SỬA LỖI HEADER === */}
       </Paper>
-      
+
       {/* Questions */}
-      <Box component="form" onSubmit={(e) => { e.preventDefault(); setOpenConfirm(true); }}>
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setOpenConfirm(true);
+        }}
+      >
         {questions.map((q, index) => {
-          const isAnswered = answers[q.id] !== "";
-          
+          const isAnswered = answers[q.id] !== '';
+
           return (
             <Card
               key={q.id}
@@ -273,56 +327,71 @@ const TestSessionPage: React.FC = () => {
                     />
                   )}
                 </Box>
-                
+
                 <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
                   {q.content}
                 </Typography>
-                
+
                 <FormControl component="fieldset" fullWidth>
                   <RadioGroup
                     value={answers[q.id] || ''}
                     onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                   >
-                    <Grid container spacing={2}>
+                    {/* === SỬA LỖI GRID: Thay <Grid container> bằng <Box display="grid"> === */}
+                    <Box
+                      display="grid"
+                      gap={2} // Tương đương spacing={2}
+                      gridTemplateColumns={{
+                        xs: '1fr', // 1 cột
+                        sm: '1fr 1fr', // 2 cột
+                      }}
+                    >
                       {Object.entries(q.options).map(([key, value]) => (
-                        <Grid item xs={12} sm={6} key={key}>
-                          <Paper
-                            elevation={answers[q.id] === key ? 3 : 1}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              border: 2,
-                              borderColor: answers[q.id] === key ? 'primary.main' : 'transparent',
-                              bgcolor: answers[q.id] === key ? alpha('#FF6C00', 0.05) : 'transparent',
-                              '&:hover': {
-                                bgcolor: alpha('#FF6C00', 0.08),
-                                transform: 'translateY(-2px)',
-                              },
-                            }}
-                            onClick={() => handleAnswerChange(q.id, key)}
-                          >
-                            <FormControlLabel
-                              value={key}
-                              control={<Radio />}
-                              label={
-                                <Typography sx={{ fontWeight: answers[q.id] === key ? 600 : 400 }}>
-                                  {key}. {value}
-                                </Typography>
-                              }
-                              sx={{ width: '100%', m: 0 }}
-                            />
-                          </Paper>
-                        </Grid>
+                        // <Grid item ...> ĐÃ BỊ XÓA
+                        <Paper
+                          key={key} // 'key' được chuyển vào đây
+                          elevation={answers[q.id] === key ? 3 : 1}
+                          sx={{
+                            p: 2,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            border: 2,
+                            borderColor:
+                              answers[q.id] === key ? 'primary.main' : 'transparent',
+                            bgcolor:
+                              answers[q.id] === key
+                                ? alpha('#FF6C00', 0.05)
+                                : 'transparent',
+                            '&:hover': {
+                              bgcolor: alpha('#FF6C00', 0.08),
+                              transform: 'translateY(-2px)',
+                            },
+                          }}
+                          onClick={() => handleAnswerChange(q.id, key)}
+                        >
+                          <FormControlLabel
+                            value={key}
+                            control={<Radio />}
+                            label={
+                              <Typography
+                                sx={{ fontWeight: answers[q.id] === key ? 600 : 400 }}
+                              >
+                                {key}. {value}
+                              </Typography>
+                            }
+                            sx={{ width: '100%', m: 0 }}
+                          />
+                        </Paper>
                       ))}
-                    </Grid>
+                    </Box>
+                    {/* === HẾT PHẦN SỬA LỖI OPTIONS === */}
                   </RadioGroup>
                 </FormControl>
               </CardContent>
             </Card>
           );
         })}
-        
+
         <Paper elevation={4} sx={{ p: 3, textAlign: 'center', borderRadius: 3 }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
             Bạn đã trả lời {answeredCount}/{questions.length} câu hỏi
@@ -382,7 +451,8 @@ const TestSessionPage: React.FC = () => {
               </Box>
             )}
             <Typography sx={{ mt: 2 }}>
-              Bạn có chắc chắn muốn nộp bài không? Bạn sẽ không thể thay đổi câu trả lời sau khi nộp.
+              Bạn có chắc chắn muốn nộp bài không? Bạn sẽ không thể thay đổi câu trả lời
+              sau khi nộp.
             </Typography>
           </DialogContentText>
         </DialogContent>

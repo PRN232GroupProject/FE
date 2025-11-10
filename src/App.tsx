@@ -1,7 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import fptTheme from './theme/theme';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import StudentLayout from './layouts/StudentLayout';
@@ -26,9 +24,6 @@ const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
 
   return (
-    <ThemeProvider theme={fptTheme}>
-      <CssBaseline />
-      <BrowserRouter>
         <Routes>
           {/* Public Route */}
           <Route
@@ -65,8 +60,6 @@ const App: React.FC = () => {
             }
           />
         </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
   );
 };
 
