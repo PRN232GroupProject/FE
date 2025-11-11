@@ -14,6 +14,9 @@ import {
   TextField,
   InputAdornment,
   ListItemButton,
+  Tabs,
+  Tab,
+  Paper,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -23,25 +26,49 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
+
+const gradeTabs = [
+  { value: 'all', label: 'Tất cả' },
+  { value: '8', label: 'Lớp 8' },
+  { value: '9', label: 'Lớp 9' },
+  { value: '10', label: 'Lớp 10' },
+  { value: '11', label: 'Lớp 11' },
+  { value: '12', label: 'Lớp 12' },
+  { value: '13', label: 'Ôn thi ĐH' },
+];
 
 const HomePage: React.FC = () => {
   const [chapters, setChapters] = useState<IChapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isAuthenticated, user } = useAuthStore();
+  
+  const [selectedGrade, setSelectedGrade] = useState('all');
 
   useEffect(() => {
     const fetchChapters = async () => {
       setLoading(true);
+      
+      const gradeFilter = selectedGrade === 'all' ? null : parseInt(selectedGrade);
+      
       // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
       // try {
-      //   const response = await contentService.getChapters();
+      //   let gradeToFetch = gradeFilter;
+      //   if (isAuthenticated && user && !gradeFilter) {
+      //     gradeToFetch = user.grade; 
+      //     setSelectedGrade(user.grade.toString());
+      //   }
+      //
+      //   const response = await contentService.getChapters({ grade: gradeToFetch });
       //   setChapters(response.data);
       // } catch (error) {
       //   console.error("Lỗi khi tải danh sách chương", error);
       // } finally {
       //   setLoading(false);
       // }
-      // Dữ liệu cứng
+
+      // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
       setTimeout(() => {
         const stubData: IChapter[] = [
           {
@@ -82,7 +109,7 @@ const HomePage: React.FC = () => {
           {
             id: 4,
             name: 'Chương 4: Đại cương kim loại',
-            grade: 11,
+            grade: 12,
             description:
               'Tính chất chung của kim loại, dãy điện hóa và các phản ứng oxi hóa - khử.',
             lessons: [
@@ -90,14 +117,43 @@ const HomePage: React.FC = () => {
               { id: 10, title: 'Bài 10: Dãy điện hóa kim loại' },
             ],
           },
+          {
+            id: 5,
+            name: 'Chương 5: Polyme',
+            grade: 12,
+            description:
+              'Khái niệm, cấu trúc, và ứng dụng của vật liệu polyme.',
+            lessons: [
+              { id: 11, title: 'Bài 11: Đại cương về Polyme' },
+              { id: 12, title: 'Bài 12: Vật liệu Polyme' },
+            ],
+          },
+          {
+            id: 6,
+            name: 'Chương 1: Bảng tuần hoàn (Lớp 10)',
+            grade: 10,
+            description:
+              'Cấu trúc bảng tuần hoàn, định luật tuần hoàn, và xu hướng biến đổi.',
+            lessons: [
+              { id: 13, title: 'Bài 13: Bảng tuần hoàn' },
+              { id: 14, title: 'Bài 14: Xu hướng biến đổi' },
+            ],
+          },
         ];
-        setChapters(stubData);
+        
+        let filteredData = stubData;
+        if (gradeFilter) {
+          filteredData = stubData.filter(c => c.grade === gradeFilter);
+        }
+        
+        setChapters(filteredData);
         setLoading(false);
-      }, 800);
+      }, 500);
+      // ---- HẾT DỮ LIỆU CỨNG ----
     };
 
     fetchChapters();
-  }, []);
+  }, [selectedGrade, isAuthenticated, user]);
 
   if (loading) {
     return (
@@ -107,7 +163,7 @@ const HomePage: React.FC = () => {
     );
   }
 
-  const filteredChapters = chapters.filter((chapter) =>
+  const filteredChaptersBySearch = chapters.filter((chapter) =>
     chapter.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -172,7 +228,6 @@ const HomePage: React.FC = () => {
         />
       </Box>
 
-      {/* Header và Thanh Search */}
       <Box
         sx={{
           display: 'flex',
@@ -203,7 +258,32 @@ const HomePage: React.FC = () => {
         />
       </Box>
 
-      {/* Chapters Grid */}
+      <Paper elevation={2} sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
+        <Tabs
+          value={selectedGrade}
+          onChange={(_, newValue) => setSelectedGrade(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTab-root': {
+              py: 2,
+              fontSize: '0.9rem',
+              fontWeight: 600,
+            },
+          }}
+        >
+          {gradeTabs.map((tab) => (
+            <Tab
+              key={tab.value}
+              icon={<SchoolIcon fontSize="small" />}
+              iconPosition="start"
+              label={tab.label}
+              value={tab.value.toString()}
+            />
+          ))}
+        </Tabs>
+      </Paper>
+
       <Box
         display="grid"
         gap={3}
@@ -213,7 +293,7 @@ const HomePage: React.FC = () => {
           lg: '1fr 1fr 1fr',
         }}
       >
-        {filteredChapters.map((chapter) => {
+        {filteredChaptersBySearch.map((chapter) => {
           const completedLessons = Math.floor(Math.random() * chapter.lessons.length);
           const progress = (completedLessons / chapter.lessons.length) * 100;
 
@@ -245,7 +325,7 @@ const HomePage: React.FC = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Chip
                     icon={<SchoolIcon />}
-                    label={`Lớp ${chapter.grade}`}
+                    label={`Lớp ${chapter.grade === 13 ? 'ĐH' : chapter.grade}`}
                     size="small"
                     sx={{
                       bgcolor: 'rgba(255,255,255,0.25)',
@@ -305,7 +385,6 @@ const HomePage: React.FC = () => {
                   {chapter.description}
                 </Typography>
 
-                {/* Box này sẽ co giãn để đẩy nút xuống */}
                 <Box sx={{ mb: 2, flexGrow: 1 }}>
                   {chapter.lessons.map((lesson, idx) => (
                     <ListItemButton
@@ -351,13 +430,12 @@ const HomePage: React.FC = () => {
 
                 <Button
                   component={RouterLink}
-                  // Bấm nút này sẽ đi đến bài học ĐẦU TIÊN
                   to={`/lesson/${chapter.lessons[0].id}`}
                   variant="contained"
                   fullWidth
                   startIcon={<PlayIcon />}
                   sx={{
-                    mt: 'auto', // Giữ nút ở cuối
+                    mt: 'auto',
                     borderRadius: 2,
                     py: 1.2,
                     fontWeight: 600,
@@ -371,7 +449,7 @@ const HomePage: React.FC = () => {
         })}
       </Box>
 
-      {filteredChapters.length === 0 && (
+      {filteredChaptersBySearch.length === 0 && !loading && (
         <Box textAlign="center" py={8}>
           <SearchIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">

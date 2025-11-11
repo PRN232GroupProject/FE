@@ -18,6 +18,10 @@ import {
   Chip,
   Stack,
   alpha,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   InputAdornment,
 } from '@mui/material';
 import {
@@ -46,6 +50,17 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
+// Dùng chung list này với RegisterPage
+const gradeLevels = [
+  { value: '8', label: 'Lớp 8' },
+  { value: '9', label: 'Lớp 9' },
+  { value: '10', label: 'Lớp 10' },
+  { value: '11', label: 'Lớp 11' },
+  { value: '12', label: 'Lớp 12' },
+  { value: '13', label: 'Ôn thi Đại học' },
+];
+
+// Interface này mô phỏng dữ liệu trả về từ API /api/profile/me
 interface IUserProfile extends ProfileFormData {
   id: number;
   role: string;
@@ -62,13 +77,13 @@ const ProfilePage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // PHẦN TÍCH HỢP API - Data mẫu
+  // Data mẫu
   const [profileData, setProfileData] = useState<IUserProfile>({
     id: user?.id || 1,
     fullName: user?.fullName || 'Nguyễn Văn An',
     email: user?.email || 'student@example.com',
     phone: '0123456789',
-    grade: 'Lớp 11',
+    grade: '11', // Sửa thành string để khớp với <Select>
     role: user?.role || 'student',
     joinedDate: '2024-09-01',
     totalTests: 15,
@@ -110,8 +125,11 @@ const ProfilePage: React.FC = () => {
 
     // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
     // try {
-    //   const response = await userService.updateProfile(profileData.id, data);
-    //   setProfileData({ ...profileData, ...response.data }); // Dùng data trả về
+    //   const response = await userService.updateProfile(profileData.id, {
+    //      ...data,
+    //      grade: parseInt(data.grade) // Chuyển '11' về 11
+    //    });
+    //   setProfileData({ ...profileData, ...response.data });
     //   setSuccess(true);
     //   setIsEditing(false);
     // } catch (err: any) {
@@ -186,14 +204,16 @@ const ProfilePage: React.FC = () => {
         </Alert>
       )}
 
+      {/* === SỬA LỖI GRID: Dùng <Box display="grid"> === */}
       <Box
         display="grid"
         gap={3}
         gridTemplateColumns={{
           xs: '1fr',
-          md: '1fr 2fr', 
+          md: '1fr 2fr',
         }}
       >
+        {/* Thông tin cơ bản */}
         <Paper
           elevation={3}
           sx={{ p: 3, textAlign: 'center', height: '100%', borderRadius: 3 }}
@@ -225,19 +245,19 @@ const ProfilePage: React.FC = () => {
           </Typography>
         </Paper>
 
-        {/* Thống kê & Form (Không cần <Grid item> bọc ngoài) */}
+        {/* Thống kê & Form */}
         <Box>
-          {/* === SỬA LỖI GRID: Thay Thống kê <Grid container> bằng <Box display="grid"> === */}
+          {/* === SỬA LỖI GRID: Thống kê === */}
           <Box
             display="grid"
             gap={2}
             sx={{ mb: 3 }}
             gridTemplateColumns={{
               xs: '1fr',
-              sm: '1fr 1fr 1fr', // 3 cột bằng nhau
+              sm: '1fr 1fr 1fr',
             }}
           >
-            {/* Card 1 (Không cần <Grid item> bọc ngoài) */}
+            {/* Card 1 */}
             <Card
               elevation={3}
               sx={{
@@ -262,7 +282,7 @@ const ProfilePage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Card 2 (Không cần <Grid item> bọc ngoài) */}
+            {/* Card 2 */}
             <Card
               elevation={3}
               sx={{
@@ -287,7 +307,7 @@ const ProfilePage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Card 3 (Không cần <Grid item> bọc ngoài) */}
+            {/* Card 3 */}
             <Card
               elevation={3}
               sx={{
@@ -341,86 +361,87 @@ const ProfilePage: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
 
             <form onSubmit={handleSubmit(onSubmit)}>
-              {/* === SỬA LỖI GRID: Thay Form <Grid container> bằng <Box display="grid"> === */}
+              {/* === SỬA LỖI GRID: Form === */}
               <Box
                 display="grid"
                 gap={3}
                 gridTemplateColumns={{
                   xs: '1fr',
-                  sm: '1fr 1fr', // 2 cột bằng nhau
+                  sm: '1fr 1fr',
                 }}
               >
-                {/* Full Name (Không cần <Grid item>) */}
+                {/* Full Name */}
                 <TextField
                   label="Họ và tên"
                   fullWidth
                   disabled={!isEditing}
-                  // === SỬA LỖI DEPRECATED: Đổi 'InputProps' thành 'slotProps' ===
-                 InputProps={{
-    startAdornment: (
-      <InputAdornment position="start">
-        <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
-      </InputAdornment>
-    ),
-  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   {...register('fullName')}
                   error={!!errors.fullName}
                   helperText={errors.fullName?.message}
                 />
 
-                {/* Email (Không cần <Grid item>) */}
+                {/* Email */}
                 <TextField
                   label="Email"
                   fullWidth
                   disabled={!isEditing}
-                  // === SỬA LỖI DEPRECATED: Đổi 'InputProps' thành 'slotProps' ===
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    },
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
                   }}
                   {...register('email')}
                   error={!!errors.email}
                   helperText={errors.email?.message}
                 />
 
-                {/* Phone (Không cần <Grid item>) */}
+                {/* Phone */}
                 <TextField
                   label="Số điện thoại"
                   fullWidth
                   disabled={!isEditing}
-                  // === SỬA LỖI DEPRECATED: Đổi 'InputProps' thành 'slotProps' ===
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    },
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
                   }}
                   {...register('phone')}
                   error={!!errors.phone}
                   helperText={errors.phone?.message}
                 />
 
-                {/* Grade (Không cần <Grid item>) */}
-                <TextField
-                  label="Lớp"
-                  fullWidth
-                  disabled={!isEditing}
-                  // === SỬA LỖI DEPRECATED: Đổi 'InputProps' thành 'slotProps' ===
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                      ),
-                    },
-                  }}
-                  {...register('grade')}
-                  error={!!errors.grade}
-                  helperText={errors.grade?.message}
-                />
+                {/* Grade (Đã sửa thành Select) */}
+                <FormControl fullWidth disabled={!isEditing} error={!!errors.grade}>
+                  <InputLabel id="grade-label">Lớp</InputLabel>
+                  <Select
+                    labelId="grade-label"
+                    label="Lớp"
+                    {...register('grade')}
+                    defaultValue={profileData.grade}
+                    startAdornment={(
+                      <InputAdornment position="start" sx={{ ml: 0.5, mr: 1 }}>
+                        <SchoolIcon sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    )}
+                  >
+                    {gradeLevels.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
                 {/* Nút bấm khi chỉnh sửa */}
                 {isEditing && (
@@ -428,7 +449,6 @@ const ProfilePage: React.FC = () => {
                     direction="row"
                     spacing={2}
                     justifyContent="flex-end"
-                    // Thêm sx này để Stack chiếm 2 cột
                     sx={{ gridColumn: { sm: 'span 2' } }}
                   >
                     <Button

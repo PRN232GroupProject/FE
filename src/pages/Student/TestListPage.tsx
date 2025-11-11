@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // <-- 1. IMPORT LẠI
 import {
   Box,
   Typography,
@@ -13,6 +13,10 @@ import {
   Paper,
   TextField,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Quiz as QuizIcon,
@@ -28,11 +32,12 @@ interface ITest {
   id: number;
   name: string;
   type: string;
-  duration: number; 
+  duration: number; // phút
   totalQuestions: number;
   chapterId: number;
   chapterName: string;
   difficulty: 'easy' | 'medium' | 'hard';
+  grade?: number; // Thêm grade để lọc
   lastAttempt?: {
     score: number;
     date: string;
@@ -40,12 +45,35 @@ interface ITest {
   };
 }
 
+const gradeFilters = [
+  { value: 'all', label: 'Tất cả Khối lớp' },
+  { value: '8', label: 'Lớp 8' },
+  { value: '9', label: 'Lớp 9' },
+  { value: '10', label: 'Lớp 10' },
+  { value: '11', label: 'Lớp 11' },
+  { value: '12', label: 'Lớp 12' },
+  { value: '13', label: 'Ôn thi ĐH' },
+];
+
+const typeFilters = [
+  { value: 'all', label: 'Tất cả các loại' },
+  { value: 'Sau bài học', label: 'Sau bài học' },
+  { value: '15 phút', label: '15 phút' },
+  { value: '1 tiết', label: '1 tiết' },
+  { value: 'Học kỳ', label: 'Học kỳ' },
+  { value: 'Tốt nghiệp', label: 'Tốt nghiệp' },
+  { value: 'Đại học', label: 'Đại học' },
+];
+
 const TestListPage: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // <-- 2. KHAI BÁO LẠI
   const [tests, setTests] = useState<ITest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'completed' | 'not-completed'>('all');
+  
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'not-completed'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -53,7 +81,13 @@ const TestListPage: React.FC = () => {
 
       // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
       // try {
-      //   const response = await testService.getAllTests();
+      //   const params = {
+      //     status: statusFilter,
+      //     grade: gradeFilter === 'all' ? null : gradeFilter,
+      //     type: typeFilter === 'all' ? null : typeFilter,
+      //     search: searchTerm
+      //   }
+      //   const response = await testService.getAllTests(params);
       //   setTests(response.data);
       // } catch (error) {
       //   console.error("Lỗi khi tải danh sách bài kiểm tra", error);
@@ -73,6 +107,7 @@ const TestListPage: React.FC = () => {
             chapterId: 1,
             chapterName: 'Chương 1: Sự điện li',
             difficulty: 'easy',
+            grade: 11,
             lastAttempt: {
               score: 8.5,
               date: '2025-11-08',
@@ -88,6 +123,7 @@ const TestListPage: React.FC = () => {
             chapterId: 1,
             chapterName: 'Chương 1: Sự điện li',
             difficulty: 'medium',
+            grade: 11,
             lastAttempt: {
               score: 7.0,
               date: '2025-11-07',
@@ -103,6 +139,7 @@ const TestListPage: React.FC = () => {
             chapterId: 1,
             chapterName: 'Chương 1-2',
             difficulty: 'hard',
+            grade: 11,
           },
           {
             id: 4,
@@ -113,6 +150,7 @@ const TestListPage: React.FC = () => {
             chapterId: 2,
             chapterName: 'Chương 2: Nitơ - Photpho',
             difficulty: 'easy',
+            grade: 11,
           },
           {
             id: 5,
@@ -123,6 +161,7 @@ const TestListPage: React.FC = () => {
             chapterId: 0,
             chapterName: 'Tổng hợp',
             difficulty: 'hard',
+            grade: 11,
           },
           {
             id: 6,
@@ -133,6 +172,7 @@ const TestListPage: React.FC = () => {
             chapterId: 0,
             chapterName: 'Tổng hợp',
             difficulty: 'hard',
+            grade: 13,
           },
           {
             id: 7,
@@ -143,16 +183,35 @@ const TestListPage: React.FC = () => {
             chapterId: 0,
             chapterName: 'Tổng hợp',
             difficulty: 'hard',
+            grade: 13,
+          },
+           {
+            id: 8,
+            name: 'Kiểm tra Hóa 10 - Mới',
+            type: '15 phút',
+            duration: 15,
+            totalQuestions: 10,
+            chapterId: 0,
+            chapterName: 'Chương 1: Hóa 10',
+            difficulty: 'medium',
+            grade: 10,
           },
         ];
-        setTests(stubData);
+        
+        const filtered = stubData
+          .filter(t => statusFilter === 'all' ? true : (statusFilter === 'completed' ? t.lastAttempt?.completed : !t.lastAttempt?.completed))
+          .filter(t => gradeFilter === 'all' ? true : t.grade?.toString() === gradeFilter)
+          .filter(t => typeFilter === 'all' ? true : t.type === typeFilter)
+          .filter(t => t.name.toLowerCase().includes(searchTerm.toLowerCase()));
+          
+        setTests(filtered);
         setLoading(false);
-      }, 800);
+      }, 500);
       // ---- HẾT DỮ LIỆU CỨNG ----
     };
 
     fetchTests();
-  }, []);
+  }, [statusFilter, searchTerm, gradeFilter, typeFilter]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -180,16 +239,6 @@ const TestListPage: React.FC = () => {
     }
   };
 
-  const filteredTests = tests
-    .filter((test) => {
-      if (filter === 'all') return true;
-      if (filter === 'completed') return test.lastAttempt?.completed;
-      if (filter === 'not-completed') return !test.lastAttempt?.completed;
-      return true;
-    })
-    .filter((test) =>
-      test.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
   if (loading) {
     return (
@@ -208,7 +257,6 @@ const TestListPage: React.FC = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)} 0%, ${alpha(
@@ -268,55 +316,92 @@ const TestListPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Filters and Search */}
-      <Box
+      <Paper
+        elevation={3}
         sx={{
+          p: 3,
           mb: 3,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 2,
+          borderRadius: 3,
         }}
       >
-        <Stack direction="row" spacing={2} flexWrap="wrap">
-          <Button
-            variant={filter === 'all' ? 'contained' : 'outlined'}
-            onClick={() => setFilter('all')}
-          >
-            Tất cả ({tests.length})
-          </Button>
-          <Button
-            variant={filter === 'completed' ? 'contained' : 'outlined'}
-            onClick={() => setFilter('completed')}
-            color="success"
-          >
-            Đã hoàn thành ({completedCount})
-          </Button>
-          <Button
-            variant={filter === 'not-completed' ? 'contained' : 'outlined'}
-            onClick={() => setFilter('not-completed')}
-            color="warning"
-          >
-            Chưa làm ({tests.length - completedCount})
-          </Button>
-        </Stack>
-        <TextField
-          variant="outlined"
-          size="small"
-          placeholder="Tìm kiếm bài kiểm tra..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+        <Box
+          display="grid"
+          gap={2}
+          gridTemplateColumns={{
+            xs: '1fr',
+            sm: 'repeat(12, 1fr)',
           }}
-          sx={{ minWidth: { sm: 300 } }}
-        />
-      </Box>
+          alignItems="center"
+        >
+          <Box sx={{ gridColumn: { sm: 'span 12' } }}>
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Button
+                variant={statusFilter === 'all' ? 'contained' : 'outlined'}
+                onClick={() => setStatusFilter('all')}
+              >
+                Tất cả ({tests.length})
+              </Button>
+              <Button
+                variant={statusFilter === 'completed' ? 'contained' : 'outlined'}
+                onClick={() => setStatusFilter('completed')}
+                color="success"
+              >
+                Đã hoàn thành ({completedCount})
+              </Button>
+              <Button
+                variant={statusFilter === 'not-completed' ? 'contained' : 'outlined'}
+                onClick={() => setStatusFilter('not-completed')}
+                color="warning"
+              >
+                Chưa làm ({tests.length - completedCount})
+              </Button>
+            </Stack>
+          </Box>
+          
+          <Box sx={{ gridColumn: { sm: 'span 4' } }}>
+            <FormControl fullWidth>
+              <InputLabel>Lọc theo Lớp</InputLabel>
+              <Select
+                value={gradeFilter}
+                label="Lọc theo Lớp"
+                onChange={(e) => setGradeFilter(e.target.value)}
+              >
+                {gradeFilters.map(f => <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+          
+          <Box sx={{ gridColumn: { sm: 'span 4' } }}>
+            <FormControl fullWidth>
+              <InputLabel>Lọc theo Loại bài thi</InputLabel>
+              <Select
+                value={typeFilter}
+                label="Lọc theo Loại bài thi"
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                {typeFilters.map(f => <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ gridColumn: { sm: 'span 4' } }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Tìm kiếm bài kiểm tra..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+        </Box>
+      </Paper>
 
       <Box
         display="grid"
@@ -327,7 +412,7 @@ const TestListPage: React.FC = () => {
           lg: '1fr 1fr 1fr',
         }}
       >
-        {filteredTests.map((test) => {
+        {tests.map((test) => {
           const isCompleted = test.lastAttempt?.completed || false;
 
           return (
@@ -396,7 +481,6 @@ const TestListPage: React.FC = () => {
               </Box>
 
               <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-                {/* Stack này phải co giãn 100% */}
                 <Stack spacing={2} sx={{ height: '100%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TimerIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
@@ -443,16 +527,15 @@ const TestListPage: React.FC = () => {
                     </Box>
                   )}
 
-                  {/* flexGrow: 1 để đẩy các phần trên và nút ra xa nhau */}
                   <Box sx={{ flexGrow: 1 }} />
 
                   <Button
                     variant="contained"
                     fullWidth
                     startIcon={<PlayArrowIcon />}
-                    onClick={() => navigate(`/test/${test.id}`)}
+                    onClick={() => navigate(`/test/${test.id}`)} // <-- 3. SỬ DỤNG LẠI
                     sx={{
-                      mt: 'auto', // Đảm bảo nút ở cuối
+                      mt: 'auto',
                       borderRadius: 2,
                       py: 1.2,
                       fontWeight: 600,
@@ -467,7 +550,7 @@ const TestListPage: React.FC = () => {
         })}
       </Box>
 
-      {filteredTests.length === 0 && (
+      {tests.length === 0 && !loading && (
         <Box textAlign="center" py={8}>
           <SearchIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">

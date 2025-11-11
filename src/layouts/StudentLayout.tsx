@@ -18,31 +18,32 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  useMediaQuery,
+  useMediaQuery, 
   useTheme,
-  Chip,
+  Chip, 
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Person as PersonIcon,
-  Logout as LogoutIcon,
+  Person as PersonIcon, 
+  Logout as LogoutIcon, 
   Home as HomeIcon,
   School as SchoolIcon,
   Quiz as QuizIcon,
   Assessment as AssessmentIcon,
   LibraryBooks as LibraryBooksIcon,
+  Login as LoginIcon,
 } from '@mui/icons-material';
 import { useAuthStore } from '../store/authStore';
 
 const StudentLayout: React.FC = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const theme = useTheme(); 
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); 
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false); 
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -58,7 +59,7 @@ const StudentLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const handleProfileClick = () => {
+  const handleProfileClick = () => { 
     handleProfileMenuClose();
     navigate('/profile');
   };
@@ -67,11 +68,14 @@ const StudentLayout: React.FC = () => {
     { text: 'Trang chủ', icon: <HomeIcon />, path: '/' },
     { text: 'Bài học', icon: <SchoolIcon />, path: '/lessons' },
     { text: 'Bài kiểm tra', icon: <QuizIcon />, path: '/tests' },
-    { text: 'Kết quả', icon: <AssessmentIcon />, path: '/results' },
     { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/resources' },
   ];
+  
+  if (isAuthenticated) {
+    menuItems.splice(3, 0, { text: 'Kết quả', icon: <AssessmentIcon />, path: '/results' });
+  }
 
-  const drawer = (
+  const drawer = ( 
     <Box sx={{ width: 250 }}>
       <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -81,11 +85,11 @@ const StudentLayout: React.FC = () => {
           Nền tảng học tập trực tuyến
         </Typography>
       </Box>
-      <Divider />
+      <Divider /> 
       <List>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
+          <ListItem key={item.text} disablePadding> 
+            <ListItemButton 
               selected={location.pathname === item.path}
               onClick={() => {
                 navigate(item.path);
@@ -101,10 +105,10 @@ const StudentLayout: React.FC = () => {
                 },
               }}
             >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'inherit' }}>
+              <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'inherit' }}> 
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText primary={item.text} /> 
             </ListItemButton>
           </ListItem>
         ))}
@@ -125,7 +129,7 @@ const StudentLayout: React.FC = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="sticky" elevation={2}>
         <Toolbar>
-          {isMobile && (
+          {isMobile && ( 
             <IconButton
               color="inherit"
               edge="start"
@@ -150,15 +154,15 @@ const StudentLayout: React.FC = () => {
               <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                 Học Hóa học
               </Typography>
-              {!isMobile && (
+              {!isMobile && ( 
                 <Typography variant="caption" sx={{ lineHeight: 1 }}>
-                  Nền tảng BinBin
+                  Nền tảng FPT
                 </Typography>
               )}
             </Box>
           </Box>
 
-          {!isMobile && (
+          {!isMobile && ( 
             <Box sx={{ display: 'flex', gap: 1, mr: 3 }}>
               {menuItems.map((item) => (
                 <Button
@@ -180,76 +184,95 @@ const StudentLayout: React.FC = () => {
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {user?.fullName}
-              </Typography>
-              <Chip
-                label={user?.role === 'student' ? 'Học sinh' : 'Admin'}
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  color: 'white',
-                  height: 20,
-                  fontSize: '0.7rem',
-                }}
-              />
+          {isAuthenticated && user ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {user.fullName}
+                </Typography>
+                <Chip 
+                  label={user.role === 'student' ? 'Học sinh' : 'Admin'}
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    height: 20,
+                    fontSize: '0.7rem',
+                  }}
+                />
+              </Box>
+              <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'secondary.main',
+                    fontWeight: 700,
+                    border: '2px solid white',
+                  }}
+                >
+                  {user.fullName ? getInitials(user.fullName) : 'U'}
+                </Avatar>
+              </IconButton>
             </Box>
-            <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
-              <Avatar
-                sx={{
-                  bgcolor: 'secondary.main',
-                  fontWeight: 700,
-                  border: '2px solid white',
-                }}
-              >
-                {user?.fullName ? getInitials(user.fullName) : 'U'}
-              </Avatar>
-            </IconButton>
-          </Box>
+          ) : (
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<LoginIcon />}
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: 'white',
+                color: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.9)'
+                }
+              }}
+            >
+              Đăng nhập
+            </Button>
+          )}
+
         </Toolbar>
       </AppBar>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleProfileMenuClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        // === SỬA LỖI 2: Đổi 'PaperProps' thành 'slotProps' ===
-        slotProps={{
-          paper: {
-            sx: { mt: 1, minWidth: 200 },
-          },
-        }}
-        // ===================================================
-      >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            {user?.fullName}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {user?.email}
-          </Typography>
-        </Box>
-        <Divider />
-        <MenuItem onClick={handleProfileClick}>
-          <PersonIcon sx={{ mr: 1 }} fontSize="small" />
-          Thông tin cá nhân
-        </MenuItem>
-        <MenuItem onClick={handleLogout}>
-          <LogoutIcon sx={{ mr: 1 }} fontSize="small" />
-          Đăng xuất
-        </MenuItem>
-      </Menu>
+      {isAuthenticated && (
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleProfileMenuClose}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          slotProps={{
+            paper: {
+              sx: { mt: 1, minWidth: 200 },
+            },
+          }}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {user?.fullName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user?.email}
+            </Typography>
+          </Box>
+          <Divider /> 
+          <MenuItem onClick={handleProfileClick}> 
+            <PersonIcon sx={{ mr: 1 }} fontSize="small" /> 
+            Thông tin cá nhân
+          </MenuItem>
+          <MenuItem onClick={handleLogout}>
+            <LogoutIcon sx={{ mr: 1 }} fontSize="small" /> 
+            Đăng xuất
+          </MenuItem>
+        </Menu>
+      )}
 
       <Drawer
         anchor="left"
-        open={drawerOpen}
+        open={drawerOpen} 
         onClose={() => setDrawerOpen(false)}
       >
-        {drawer}
+        {drawer} 
       </Drawer>
 
       <Container 
@@ -262,6 +285,7 @@ const StudentLayout: React.FC = () => {
       >
         <Outlet />
       </Container>
+
       <Box
         component="footer"
         sx={{
