@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom'; // <-- Thêm 'Link'
 import { useAuthStore } from '../../store/authStore';
 import type { IUser } from '../../types/user.types';
 import {
@@ -18,6 +18,7 @@ import {
   IconButton,
   alpha,
   Stack,
+  Link, // <-- Thêm MUI Link
 } from '@mui/material';
 import {
   Visibility,
@@ -155,7 +156,7 @@ const LoginPage: React.FC = () => {
               Đăng nhập
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Chào mừng đến với Nền tảng Học Hóa học FPT
+              Chào mừng đến với Nền tảng Học Hóa học BinBin
             </Typography>
           </Box>
 
@@ -257,15 +258,49 @@ const LoginPage: React.FC = () => {
             </Button>
 
             <Stack spacing={2} sx={{ mt: 3 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Button
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', color: 'text.secondary' }}
+              {/* === SỬA BỐ CỤC LINK === */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  px: 0.5,
+                }}
+              >
+                <Link
+                  component={RouterLink}
+                  to="/register"
+                  variant="body2"
+                  sx={{
+                    textDecoration: 'none',
+                    color: 'primary.main',
+                    fontWeight: 600,
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                  }}
+                >
+                  Bạn chưa có tài khoản?
+                </Link>
+                
+                <Link
+                  component={RouterLink}
+                  to="#" // Đổi '#' thành '/forgot-password' nếu bạn có trang đó
+                  variant="body2"
+                  sx={{
+                    textDecoration: 'none',
+                    color: 'text.secondary',
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                  }}
                 >
                   Quên mật khẩu?
-                </Button>
+                </Link>
               </Box>
+              {/* === HẾT PHẦN SỬA === */}
+
               <Box
                 sx={{
                   textAlign: 'center',
@@ -293,7 +328,7 @@ const LoginPage: React.FC = () => {
           align="center"
           sx={{ mt: 3, color: 'white', opacity: 0.9 }}
         >
-          © 2025 EHEHE Corporation. All rights reserved.
+          © 2025 BinBin Corporation. All rights reserved.
         </Typography>
       </Container>
     </Box>
