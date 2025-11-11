@@ -152,7 +152,7 @@ const StudentLayout: React.FC = () => {
               </Typography>
               {!isMobile && (
                 <Typography variant="caption" sx={{ lineHeight: 1 }}>
-                  Nền tảng FPT
+                  Nền tảng BinBin
                 </Typography>
               )}
             </Box>
@@ -217,9 +217,13 @@ const StudentLayout: React.FC = () => {
         onClose={handleProfileMenuClose}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        PaperProps={{
-          sx: { mt: 1, minWidth: 200 },
+        // === SỬA LỖI 2: Đổi 'PaperProps' thành 'slotProps' ===
+        slotProps={{
+          paper: {
+            sx: { mt: 1, minWidth: 200 },
+          },
         }}
+        // ===================================================
       >
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -258,7 +262,6 @@ const StudentLayout: React.FC = () => {
       >
         <Outlet />
       </Container>
-
       <Box
         component="footer"
         sx={{
@@ -273,7 +276,7 @@ const StudentLayout: React.FC = () => {
         <Container maxWidth="xl">
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <Typography variant="body2" color="text.secondary">
-              © 2025 Nền tảng Học Hóa học FPT. All rights reserved.
+              © 2025 Nền tảng Học Hóa học BinBin. All rights reserved.
             </Typography>
             <Box sx={{ display: 'flex', gap: 3 }}>
               <Typography variant="body2" color="text.secondary" sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
