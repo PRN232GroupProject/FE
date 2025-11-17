@@ -33,7 +33,7 @@ import {
   LibraryBooks as LibraryBooksIcon,
   Login as LoginIcon,
 } from '@mui/icons-material';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../stores/authStore';
 
 const StudentLayout: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuthStore();
@@ -156,7 +156,7 @@ const StudentLayout: React.FC = () => {
               </Typography>
               {!isMobile && ( 
                 <Typography variant="caption" sx={{ lineHeight: 1 }}>
-                  Nền tảng FPT
+                  Nền tảng BinBin
                 </Typography>
               )}
             </Box>
