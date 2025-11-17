@@ -1,3 +1,11 @@
+// ============================================
+// TEST TYPES
+// Mapped from Backend DTOs
+// ============================================
+
+// ============================================
+// QUESTION
+// ============================================
 export interface IQuestionResponse {
   id: number;
   lessonId?: number;
@@ -39,6 +47,51 @@ export interface ITest {
 // ============================================
 // TEST SESSION (Làm bài)
 // ============================================
+
+// Create Test Session Request
+export interface ICreateTestSessionRequest {
+  userId: number;
+  testId: number;
+  startTime: string;
+  endTime?: string;
+  score?: number;
+  status: 'in_progress' | 'completed';
+}
+
+// Update Test Session Request
+export interface IUpdateTestSessionRequest {
+  id: number;
+  userId: number;
+  testId: number;
+  startTime: string;
+  endTime?: string;
+  score?: number;
+  status: 'in_progress' | 'completed';
+}
+
+// Test Session Response (Basic)
+export interface ITestSessionResponseBasic {
+  id: number;
+  userId: number;
+  testId: number;
+  startTime: string;
+  endTime?: string;
+  score?: number;
+  status: 'in_progress' | 'completed';
+}
+
+// Student Test Session Response (with answers)
+export interface IStudentTestSessionResponse {
+  sessionId: number;
+  testId: number;
+  score?: number;
+  status: string;
+  startTime: string;
+  endTime?: string;
+  answers: IStudentAnswerResponse[];
+}
+
+// Start Test (Frontend)
 export interface IStartTestRequest {
   testId: number;
 }
@@ -61,6 +114,51 @@ export interface ISubmitAnswerRequest {
 
 export interface ISubmitTestRequest {
   sessionId: number;
+}
+
+// ============================================
+// ANSWERS
+// ============================================
+
+// Student Answer Response
+export interface IStudentAnswerResponse {
+  questionId: number;
+  selectedAnswer?: string;
+  isCorrect: boolean;
+}
+
+// Answer Response
+export interface IAnswerResponse {
+  id: number;
+  sessionId: number;
+  questionId: number;
+  selectedAnswer?: string;
+  isCorrect: boolean;
+}
+
+// Create Answer Request
+export interface ICreateAnswerRequest {
+  sessionId: number;
+  questionId: number;
+  selectedAnswer?: string;
+  isCorrect: boolean;
+}
+
+// Update Answer Request
+export interface IUpdateAnswerRequest {
+  id: number;
+  sessionId: number;
+  questionId: number;
+  selectedAnswer?: string;
+  isCorrect: boolean;
+}
+
+// ============================================
+// QUESTION EXPLANATION
+// ============================================
+export interface IQuestionExplanationResponse {
+  questionId: number;
+  explanationHtml?: string;
 }
 
 // ============================================

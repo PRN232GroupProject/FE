@@ -1,3 +1,4 @@
+
 export interface ILessonInfo {
   id: number;
   title: string;
@@ -10,6 +11,7 @@ export interface ILessonResponse {
   content?: string;
   createdById?: number;
   createdAt: string;
+  resourceName?: string; 
 }
 
 export interface ILessonDetail {
@@ -20,9 +22,6 @@ export interface ILessonDetail {
   resources: IResource[];
 }
 
-// ============================================
-// CHAPTER
-// ============================================
 export interface IChapter {
   id: number;
   name: string;
@@ -39,9 +38,6 @@ export interface IChapterResponse {
   lessons: ILessonResponse[];
 }
 
-// ============================================
-// RESOURCE
-// ============================================
 export interface IResource {
   id: number;
   title: string;
@@ -54,14 +50,14 @@ export interface IResourceResponse {
   resourceId: number;
   lessonId: number;
   resourceTitle: string;
-  resourceType?: string; // 'video' | 'pdf' | 'document' | 'link'
+  resourceType?: string; 
   resourceUrl?: string;
   resourceDescription?: string;
+  isCompleted?: boolean; 
+  completedAt?: string; 
 }
 
-// ============================================
-// HELPER: Convert Response to Frontend Model
-// ============================================
+
 export const mapChapterResponse = (response: IChapterResponse): IChapter => ({
   id: response.chapterId,
   name: response.chapterName,
