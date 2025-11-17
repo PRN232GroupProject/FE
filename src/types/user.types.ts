@@ -1,6 +1,8 @@
 export interface IUser {
   id: number;
+  role: string;
   fullName: string;
   email: string;
-  role: 'student' | 'admin';
+  isActive: boolean;
+  createdAt: string;
 }

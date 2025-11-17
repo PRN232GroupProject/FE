@@ -3,8 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import type { IUser } from '../../types/user.types';
+import { authService } from '../../services/features/auth.service';
 import {
   Container,
   TextField,
@@ -17,10 +16,6 @@ import {
   InputAdornment,
   IconButton,
   alpha,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import {
   Visibility,
@@ -30,14 +25,12 @@ import {
   School as SchoolIcon,
   ChevronRight as ChevronRightIcon,
   Person as PersonIcon,
-  Class as ClassIcon,
 } from '@mui/icons-material';
 
 // ... (Schema và Type không đổi) ...
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
   email: z.email('Email không hợp lệ'),
-  grade: z.string().min(1, 'Vui lòng chọn khối lớp'), // Dùng string cho Select
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
   confirmPassword: z.string().min(6, 'Vui lòng xác nhận mật khẩu'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -47,22 +40,12 @@ const registerSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-const gradeLevels = [
-  { value: '8', label: 'Lớp 8' },
-  { value: '9', label: 'Lớp 9' },
-  { value: '10', label: 'Lớp 10' },
-  { value: '11', label: 'Lớp 11' },
-  { value: '12', label: 'Lớp 12' },
-  { value: '13', label: 'Ôn thi Đại học' }, // Dùng 13 cho "Ôn thi"
-];
-
 
 const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const loginToStore = useAuthStore((state) => state.loginToStore);
   
   const {
     register,
@@ -76,40 +59,23 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-    // try {
-    //   const response = await authService.register({
-    //     fullName: data.fullName,
-    //     email: data.email,
-    //     password: data.password,
-    //     grade: parseInt(data.grade) // Chuyển '11' về 11
-    //   });
-    //   const { token, user } = response.data;
-    //   loginToStore(token, user); 
-    //   navigate('/'); // Đăng ký thành công thì vào trang chủ
-    // } catch (err: any) {
-    //   console.error("Đăng ký thất bại", err);
-    //   setError(err.response?.data?.message || 'Đăng ký thất bại');
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-    console.log('Đang gửi dữ liệu đăng ký:', data);
-    setTimeout(() => {
-      const fakeUser: IUser = {
-        id: 2,
+    try {
+      // Register with the API (confirmPassword validated on frontend only)
+      await authService.register({
         fullName: data.fullName,
         email: data.email,
-        role: 'student',
-      };
-      const fakeToken = 'fake-jwt-token-987654';
-      
-      loginToStore(fakeToken, fakeUser);
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      });
+
+      // Navigate to login page after successful registration
+      navigate('/login');
+    } catch (err: any) {
+      console.error('Đăng ký thất bại', err);
+      setError(err.message || 'Đăng ký thất bại');
+    } finally {
       setLoading(false);
-      navigate('/');
-    }, 1500);
-    // ---- HẾT DỮ LIỆU CỨNG ----
+    }
   };
 
   return (
@@ -207,39 +173,6 @@ const RegisterPage: React.FC = () => {
                   ),
                 }}
               />
-
-              {/* Khối lớp (Chiếm 2 cột) */}
-              <FormControl
-                fullWidth
-                required
-                error={!!errors.grade}
-                sx={{ gridColumn: { sm: 'span 2' } }} // <-- Chiếm 2 cột
-              >
-                <InputLabel id="grade-label">Khối lớp của bạn</InputLabel>
-                <Select
-                  labelId="grade-label"
-                  label="Khối lớp của bạn"
-                  defaultValue=""
-                  disabled={loading}
-                  {...register('grade')}
-                  startAdornment={(
-                    <InputAdornment position="start" sx={{ ml: 0.5, mr: 1 }}>
-                      <ClassIcon sx={{ color: 'text.secondary' }} />
-                    </InputAdornment>
-                  )}
-                >
-                  {gradeLevels.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.grade && (
-                  <Typography variant="caption" color="error.main" sx={{ ml: 2, mt: 0.5 }}>
-                    {errors.grade.message}
-                  </Typography>
-                )}
-              </FormControl>
 
               {/* Mật khẩu (Không cần <Grid item>) */}
               <TextField

@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom'; // <-- Thêm 'Link'
 import { useAuthStore } from '../../store/authStore';
-import type { IUser } from '../../types/user.types';
+import { authService } from '../../services/features/auth.service';
+import { userService } from '../../services/features/user.service';
 import {
   Container,
   TextField,
@@ -57,39 +58,30 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-    // try {
-    //   const response = await authService.login(data.email, data.password);
-    //   const { token, user } = response.data;
-    //   loginToStore(token, user); 
-    //   navigate(user.role === 'student' ? '/' : '/admin/questions');
-    // } catch (err: any) {
-    //   console.error("Đăng nhập thất bại", err);
-    //   setError(err.response?.data?.message || 'Đăng nhập thất bại');
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-    setTimeout(() => {
-      const isStudent = !data.email.includes('admin');
+    try {
+      // Login and get token and role
+      const response = await authService.login(data);
+      const { token, role } = response.data;
       
-      const fakeUser: IUser = isStudent
-        ? { id: 1, fullName: 'Nguyễn Văn An', email: data.email, role: 'student' }
-        : { id: 99, fullName: 'Quản Trị Viên', email: data.email, role: 'admin' };
+      // Store token and role in auth service
+      authService.setToken(token);
+      localStorage.setItem('role', typeof role === 'string' ? role : String(role));
       
-      const fakeToken = 'fake-jwt-token-123456';
+      // Fetch complete user data from the API
+      const userResponse = await userService.getCurrentUser();
+      const user = userResponse.data;
       
-      loginToStore(fakeToken, fakeUser);
+      // Store user data in zustand store
+      loginToStore(token, user);
+      
+      // Navigate to homepage
+      navigate('/');
+    } catch (err: any) {
+      console.error("Đăng nhập thất bại", err);
+      setError(err.message || 'Đăng nhập thất bại');
+    } finally {
       setLoading(false);
-      
-      if (fakeUser.role === 'student') {
-        navigate('/');
-      } else {
-        navigate('/admin/questions');
-      }
-    }, 1500);
-    // ---- HẾT DỮ LIỆU CỨNG ----
+    }
   };
 
   return (
@@ -301,7 +293,7 @@ const LoginPage: React.FC = () => {
               </Box>
               {/* === HẾT PHẦN SỬA === */}
 
-              <Box
+              {/* <Box
                 sx={{
                   textAlign: 'center',
                   p: 2,
@@ -318,7 +310,7 @@ const LoginPage: React.FC = () => {
                 <Typography variant="caption" color="text.secondary">
                   Mật khẩu: 123456
                 </Typography>
-              </Box>
+              </Box> */}
             </Stack>
           </Box>
         </Paper>
