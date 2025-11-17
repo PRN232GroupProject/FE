@@ -7,21 +7,9 @@ import {
   CheckCircle as CheckCircleIcon,
   Assessment as AssessmentIcon,
 } from '@mui/icons-material';
+import type { ITest } from '../../../../types/test.types'; // <-- THAY ĐỔI Ở ĐÂY
 
-export interface ITest {
-  id: number;
-  name: string;
-  type: string;
-  duration: number;
-  totalQuestions: number;
-  chapterName: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  lastAttempt?: {
-    score: number;
-    date: string;
-    completed: boolean;
-  };
-}
+// ⛔️ ĐÃ XÓA INTERFACE ITest CỤC BỘ Ở ĐÂY
 
 interface TestCardProps {
   test: ITest;
