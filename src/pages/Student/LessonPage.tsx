@@ -28,6 +28,18 @@ const LessonPage: React.FC = () => {
 
   const [selectedResource, setSelectedResource] = useState<IResource | null>(null);
 
+  const completedResourcesList = useMemo(
+    () => (lesson?.resources || []).filter((r) => r.isCompleted).map((r) => r.id),
+    [lesson]
+  );
+
+  const totalResources = lesson?.resources?.length || 0;
+
+  const progress =
+    totalResources > 0
+      ? (completedResourcesList.length / totalResources) * 100
+      : 0;
+
   useEffect(() => {
     if (lesson && lesson.resources.length > 0) {
       if (!selectedResource) {
@@ -47,15 +59,6 @@ const LessonPage: React.FC = () => {
   if (isError || !lesson) {
     return <EmptyState title="Không tìm thấy bài học" />;
   }
-
-  const completedResourcesList = useMemo(
-    () => lesson.resources.filter((r) => r.isCompleted).map((r) => r.id),
-    [lesson]
-  );
-  const progress =
-    lesson.resources.length > 0
-      ? (completedResourcesList.length / lesson.resources.length) * 100
-      : 0;
 
   return (
     <Box>
