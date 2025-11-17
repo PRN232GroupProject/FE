@@ -5,14 +5,12 @@ import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { authService } from '../../services/features/auth.service';
 import {
-  Container,
   TextField,
   Button,
   Typography,
   Box,
   CircularProgress,
   Alert,
-  Paper,
   InputAdornment,
   IconButton,
   alpha,
@@ -22,10 +20,10 @@ import {
   VisibilityOff,
   Email as EmailIcon,
   Lock as LockIcon,
-  School as SchoolIcon,
   ChevronRight as ChevronRightIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import AuthLayout from '../../components/layouts/AuthLayout';
 
 // ... (Schema và Type không đổi) ...
 const registerSchema = z.object({
@@ -79,100 +77,120 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        background: `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)} 0%, ${alpha('#0055A5', 0.9)} 100%)`,
-        py: 4,
-      }}
-    >
-      <Container component="main" maxWidth="md">
-        <Paper
-          elevation={10}
-          sx={{
-            p: { xs: 3, sm: 5 },
-            borderRadius: 4,
+    <AuthLayout title="Đăng ký tài khoản" subtitle="Tham gia Nền tảng Học Hóa học FPT">
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+        <Box
+          display="grid"
+          gap={2}
+          gridTemplateColumns={{
+            xs: '1fr',
+            sm: '1fr 1fr',
           }}
         >
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, #FF6C00, #0055A5)`,
-                mb: 2,
-              }}
+          <TextField
+            required
+            fullWidth
+            label="Họ và tên"
+            autoComplete="name"
+            autoFocus
+            {...register('fullName')}
+            error={!!errors.fullName}
+            helperText={errors.fullName?.message}
+            disabled={loading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            required
+            fullWidth
+            label="Địa chỉ Email"
+            autoComplete="email"
+            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            disabled={loading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <FormControl
+            fullWidth
+            required
+            error={!!errors.grade}
+            sx={{ gridColumn: { sm: 'span 2' } }}
+          >
+            <InputLabel id="grade-label">Khối lớp của bạn</InputLabel>
+            <Select
+              labelId="grade-label"
+              label="Khối lớp của bạn"
+              defaultValue=""
+              disabled={loading}
+              {...register('grade')}
+              startAdornment={
+                <InputAdornment position="start" sx={{ ml: 0.5, mr: 1 }}>
+                  <ClassIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              }
             >
-              <SchoolIcon sx={{ fontSize: 48, color: 'white' }} />
-            </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-              Đăng ký tài khoản
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Tham gia Nền tảng Học Hóa học FPT
-            </Typography>
-          </Box>
+              {gradeLevels.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.grade && (
+              <Typography variant="caption" color="error.main" sx={{ ml: 2, mt: 0.5 }}>
+                {errors.grade.message}
+              </Typography>
+            )}
+          </FormControl>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-            {/* === SỬA LỖI GRID (LỖI TRONG HÌNH): Thay <Grid container> bằng <Box display="grid"> === */}
-            <Box
-              display="grid"
-              gap={2} // Tương đương spacing={2}
-              gridTemplateColumns={{
-                xs: '1fr',
-                sm: '1fr 1fr', // 2 cột
-              }}
-            >
-              {/* Họ và tên (Không cần <Grid item>) */}
-              <TextField
-                required
-                fullWidth
-                label="Họ và tên"
-                autoComplete="name"
-                autoFocus
-                {...register('fullName')}
-                error={!!errors.fullName}
-                helperText={errors.fullName?.message}
-                disabled={loading}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: 'text.secondary' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              {/* Email (Không cần <Grid item>) */}
-              <TextField
-                required
-                fullWidth
-                label="Địa chỉ Email"
-                autoComplete="email"
-                {...register('email')}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-                disabled={loading}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: 'text.secondary' }} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+          <TextField
+            required
+            fullWidth
+            label="Mật khẩu"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            {...register('password')}
+            error={!!errors.password}
+            helperText={errors.password?.message}
+            disabled={loading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    disabled={loading}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
 
               {/* Mật khẩu (Không cần <Grid item>) */}
               <TextField
@@ -225,51 +243,27 @@ const RegisterPage: React.FC = () => {
                 }}
               />
             </Box>
-            {/* === HẾT PHẦN SỬA LỖI GRID === */}
+          ) : (
+            'Đăng ký'
+          )}
+        </Button>
 
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Đã có tài khoản?{' '}
             <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              endIcon={loading ? null : <ChevronRightIcon />}
-              sx={{
-                mt: 3,
-                mb: 2,
-                py: 1.5,
-                borderRadius: 2,
-                fontSize: '1rem',
-                fontWeight: 600,
-              }}
+              component={RouterLink}
+              to="/login"
+              variant="text"
+              size="small"
+              sx={{ textTransform: 'none', fontWeight: 600 }}
             >
-              {loading ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={24} color="inherit" />
-                  <span>Đang tạo tài khoản...</span>
-                </Box>
-              ) : (
-                'Đăng ký'
-              )}
+              Đăng nhập ngay
             </Button>
-
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Đã có tài khoản?{' '}
-                <Button
-                  component={RouterLink}
-                  to="/login"
-                  variant="text"
-                  size="small"
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  Đăng nhập ngay
-                </Button>
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+          </Typography>
+        </Box>
+      </Box>
+    </AuthLayout>
   );
 };
 

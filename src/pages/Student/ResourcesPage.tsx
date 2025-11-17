@@ -1,32 +1,14 @@
 import React, { useState } from 'react';
+import { Box, Paper, Tabs, Tab, Typography } from '@mui/material';
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Chip,
-  Button,
-  alpha,
-  Stack,
-  Paper,
-  Tabs,
-  Tab,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
-import {
-  PictureAsPdf as PdfIcon,
-  Videocam as VideoIcon,
-  Link as LinkIcon,
-  Download as DownloadIcon,
   MenuBook as BookIcon,
   Science as ScienceIcon,
   Calculate as CalculateIcon,
   ViewModule as TableIcon,
 } from '@mui/icons-material';
+import PageHeader from '../../components/shared/PageHeader';
+import ResourceCard from './components/resource/ResourceCard';
+import PopularResources from './components/resource/PopularResources';
 
 interface IResource {
   id: number;
@@ -126,15 +108,15 @@ const ResourcesPage: React.FC = () => {
 
   const categories = [
     { value: 0, label: 'Tất cả', icon: <BookIcon /> },
-    { value: 1, label: 'Lý thuyết', icon: <ScienceIcon />, filter: 'theory' },
-    { value: 2, label: 'Công thức', icon: <CalculateIcon />, filter: 'formula' },
+    { value: 1, label: 'Lý thuyết', icon: <ScienceIcon />, filter: 'theory' as const },
+    { value: 2, label: 'Công thức', icon: <CalculateIcon />, filter: 'formula' as const },
     {
       value: 3,
       label: 'Bảng tuần hoàn',
       icon: <TableIcon />,
-      filter: 'periodic-table',
+      filter: 'periodic-table' as const,
     },
-    { value: 4, label: 'Bài tập', icon: <BookIcon />, filter: 'exercise' },
+    { value: 4, label: 'Bài tập', icon: <BookIcon />, filter: 'exercise' as const },
   ];
 
   const filteredResources =
@@ -142,54 +124,12 @@ const ResourcesPage: React.FC = () => {
       ? resources
       : resources.filter((r) => r.category === categories[selectedTab].filter);
 
-  const getResourceIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return <PdfIcon sx={{ fontSize: 40, color: 'error.main' }} />;
-      case 'video':
-        return <VideoIcon sx={{ fontSize: 40, color: 'primary.main' }} />;
-      case 'link':
-        return <LinkIcon sx={{ fontSize: 40, color: 'info.main' }} />;
-      default:
-        return <BookIcon sx={{ fontSize: 40 }} />;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return 'PDF';
-      case 'video':
-        return 'Video';
-      case 'link':
-        return 'Link';
-      default:
-        return type;
-    }
-  };
-
   return (
     <Box>
-      {/* Header */}
-      <Box
-        sx={{
-          background: `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)} 0%, ${alpha(
-            '#0055A5',
-            0.9,
-          )} 100%)`,
-          borderRadius: 4,
-          p: 4,
-          mb: 4,
-          color: 'white',
-        }}
-      >
-        <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
-          Tài liệu học tập
-        </Typography>
-        <Typography variant="h6" sx={{ opacity: 0.95 }}>
-          Tổng hợp tài liệu, công thức và bài tập hỗ trợ học tập
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Tài liệu học tập"
+        subtitle="Tổng hợp tài liệu, công thức và bài tập hỗ trợ học tập"
+      />
 
       {/* Tabs */}
       <Paper elevation={2} sx={{ mb: 3, borderRadius: 3 }}>
@@ -207,159 +147,30 @@ const ResourcesPage: React.FC = () => {
           }}
         >
           {categories.map((cat) => (
-            <Tab
-              key={cat.value}
-              icon={cat.icon}
-              iconPosition="start"
-              label={cat.label}
-            />
+            <Tab key={cat.value} icon={cat.icon} iconPosition="start" label={cat.label} />
           ))}
         </Tabs>
       </Paper>
 
       {/* Popular Resources */}
-      {selectedTab === 0 && (
-        <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-          <Typography
-            variant="h5"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'primary.main' }}
-          >
-            📚 Tài liệu phổ biến
-          </Typography>
-          <List>
-            {resources
-              .sort((a, b) => (b.views || 0) - (a.views || 0))
-              .slice(0, 3)
-              .map((resource) => (
-                <ListItem key={resource.id} disablePadding sx={{ mb: 1 }}>
-                  <ListItemButton
-                    sx={{
-                      borderRadius: 2,
-                      border: 1,
-                      borderColor: 'divider',
-                      '&:hover': {
-                        bgcolor: alpha('#FF6C00', 0.05),
-                        borderColor: 'primary.main',
-                      },
-                    }}
-                  >
-                    <ListItemIcon>{getResourceIcon(resource.type)}</ListItemIcon>
-                    <ListItemText
-                      primary={resource.title}
-                      secondary={`${resource.views} lượt xem`}
-                      primaryTypographyProps={{ fontWeight: 600 }}
-                    />
-                    <Chip
-                      label={getTypeLabel(resource.type)}
-                      size="small"
-                      color="primary"
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-          </List>
-        </Paper>
-      )}
+      {selectedTab === 0 && <PopularResources resources={resources} />}
 
-      {/* === SỬA LỖI GRID: Thay <Grid container> bằng <Box display="grid"> === */}
-      <Box
-        display="grid"
-        gap={3} // Tương đương spacing={3}
-        gridTemplateColumns={{
-          xs: '1fr', // Tương đương xs={12}
-          md: '1fr 1fr', // Tương đương md={6}
-          lg: '1fr 1fr 1fr', // Tương đương lg={4}
-        }}
-      >
-        {filteredResources.map((resource) => (
-          // <Grid item ...> ĐÃ BỊ XÓA
-          // 'key' được chuyển vào Card
-          <Card
-            key={resource.id}
-            elevation={3}
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: 8,
-              },
-            }}
-          >
-            <Box
-              sx={{
-                p: 3,
-                textAlign: 'center',
-                background: `linear-gradient(135deg, ${alpha(
-                  '#FF6C00',
-                  0.1,
-                )}, ${alpha('#0055A5', 0.1)})`,
-              }}
-            >
-              {getResourceIcon(resource.type)}
-              <Chip
-                label={getTypeLabel(resource.type)}
-                size="small"
-                color="primary"
-                sx={{ mt: 1, fontWeight: 600 }}
-              />
-            </Box>
-
-            <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {resource.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {resource.description}
-              </Typography>
-
-              <Stack spacing={1} sx={{ mb: 2 }}>
-                {resource.size && (
-                  <Typography variant="caption" color="text.secondary">
-                    📦 Dung lượng: {resource.size}
-                  </Typography>
-                )}
-                {resource.views && (
-                  <Typography variant="caption" color="text.secondary">
-                    👁️ Lượt xem: {resource.views}
-                  </Typography>
-                )}
-              </Stack>
-
-              <Button
-                variant="contained"
-                fullWidth
-                startIcon={
-                  resource.type === 'pdf' || resource.type === 'link' ? (
-                    <DownloadIcon />
-                  ) : (
-                    <VideoIcon />
-                  )
-                }
-                onClick={() => window.open(resource.url, '_blank')}
-                sx={{
-                  mt: 'auto',
-                  borderRadius: 2,
-                  py: 1.2,
-                  fontWeight: 600,
-                }}
-              >
-                {resource.type === 'pdf'
-                  ? 'Tải xuống'
-                  : resource.type === 'video'
-                  ? 'Xem video'
-                  : 'Truy cập'}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-      {/* === HẾT PHẦN SỬA LỖI GRID === */}
-
-      {filteredResources.length === 0 && (
+      {/* Resource Cards Grid */}
+      {filteredResources.length > 0 ? (
+        <Box
+          display="grid"
+          gap={3}
+          gridTemplateColumns={{
+            xs: '1fr',
+            md: '1fr 1fr',
+            lg: '1fr 1fr 1fr',
+          }}
+        >
+          {filteredResources.map((resource) => (
+            <ResourceCard key={resource.id} resource={resource} />
+          ))}
+        </Box>
+      ) : (
         <Box textAlign="center" py={8}>
           <BookIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">

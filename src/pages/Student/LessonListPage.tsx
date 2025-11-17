@@ -1,49 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { IChapter } from '../../types/content.types'; // Sử dụng lại type IChapter
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Chip,
-  alpha,
-  LinearProgress,
-  Stack,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-} from '@mui/material';
-import {
-  School as SchoolIcon,
-  PlayCircleOutline as PlayIcon,
-  CheckCircle as CheckIcon,
-  ExpandMore as ExpandMoreIcon,
-} from '@mui/icons-material';
+import { Box, Paper, Typography } from '@mui/material';
+import type { IChapter } from '../../types/content.types';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import PageHeader from '../../components/shared/PageHeader';
+import ChapterAccordion from './components/lesson-list/ChapterAccordion';
 
 const LessonListPage: React.FC = () => {
   const [chapters, setChapters] = useState<IChapter[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchChapters = async () => {
       setLoading(true);
       // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
       // try {
-      //   const response = await contentService.getChaptersWithProgress();
-      //   setChapters(response.data);
+      //   const response = await contentService.getChaptersWithProgress();
+      //   setChapters(response.data);
       // } catch (error) {
-      //   console.error("Lỗi khi tải danh sách chương", error);
+      //   console.error("Lỗi khi tải danh sách chương", error);
       // } finally {
-      //   setLoading(false);
+      //   setLoading(false);
       // }
-      // Dữ liệu cứng
+
+      // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
       setTimeout(() => {
         const stubData: IChapter[] = [
           {
@@ -92,144 +71,40 @@ const LessonListPage: React.FC = () => {
         setChapters(stubData);
         setLoading(false);
       }, 800);
+      // ---- HẾT DỮ LIỆU CỨNG ----
     };
 
     fetchChapters();
   }, []);
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
     <Box>
-      {/* Header */}
-      <Box
-        sx={{
-          background: `linear-gradient(135deg, ${alpha('#FF6C00', 0.9)} 0%, ${alpha(
-            '#0055A5',
-            0.9,
-          )} 100%)`,
-          borderRadius: 4,
-          p: 4,
-          mb: 4,
-          color: 'white',
-        }}
-      >
-        <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
-          Danh sách Bài học
-        </Typography>
-        <Typography variant="h6" sx={{ opacity: 0.95 }}>
-          Toàn bộ chương trình Hóa học lớp 11
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Danh sách Bài học"
+        subtitle="Toàn bộ chương trình Hóa học lớp 11"
+      />
 
-      {/* Danh sách chương (dạng Accordion) */}
       <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
           Nội dung khóa học
         </Typography>
 
         {chapters.map((chapter, index) => {
-          // Dữ liệu giả về tiến độ
           const completedLessons = Math.floor(Math.random() * chapter.lessons.length);
           const progress = (completedLessons / chapter.lessons.length) * 100;
 
           return (
-            <Accordion
+            <ChapterAccordion
               key={chapter.id}
-              defaultExpanded={index === 0} // Mở chương đầu tiên
-              sx={{
-                mb: 2,
-                borderRadius: 3,
-                boxShadow: 2,
-                '&:before': { display: 'none' },
-                '&.Mui-expanded': {
-                  margin: '16px 0',
-                },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  py: 1,
-                  px: 2,
-                  borderRadius: 3,
-                  '&.Mui-expanded': {
-                    borderBottomLeftRadius: 0,
-                    borderBottomRightRadius: 0,
-                  },
-                }}
-              >
-                <Box sx={{ width: '100%' }}>
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                    <Chip
-                      icon={<SchoolIcon />}
-                      label={`Lớp ${chapter.grade}`}
-                      size="small"
-                      color="primary"
-                    />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {chapter.name}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <LinearProgress
-                      variant="determinate"
-                      value={progress}
-                      sx={{
-                        flexGrow: 1,
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: alpha('#FF6C00', 0.1),
-                      }}
-                    />
-                    <Typography variant="caption" sx={{ fontWeight: 600, minWidth: 120 }}>
-                      {completedLessons}/{chapter.lessons.length} bài hoàn thành
-                    </Typography>
-                  </Stack>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 0 }}>
-                <List sx={{ p: 0 }}>
-                  {chapter.lessons.map((lesson, idx) => (
-                    <ListItem key={lesson.id} disablePadding>
-                      <ListItemButton
-                        onClick={() => navigate(`/lesson/${lesson.id}`)}
-                        sx={{
-                          py: 2,
-                          px: 3,
-                          borderTop: 1,
-                          borderColor: 'divider',
-                          '&:hover': {
-                            bgcolor: alpha('#FF6C00', 0.05),
-                          },
-                        }}
-                      >
-                        <ListItemIcon>
-                          {idx < completedLessons ? (
-                            <CheckIcon sx={{ color: 'success.main' }} />
-                          ) : (
-                            <PlayIcon sx={{ color: 'text.secondary' }} />
-                          )}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={lesson.title}
-                          primaryTypographyProps={{
-                            fontWeight: idx < completedLessons ? 600 : 400,
-                            color: idx < completedLessons ? 'text.primary' : 'text.secondary',
-                          }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </AccordionDetails>
-            </Accordion>
+              chapter={chapter}
+              completedLessons={completedLessons}
+              progress={progress}
+              defaultExpanded={index === 0}
+            />
           );
         })}
       </Paper>
