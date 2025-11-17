@@ -3,21 +3,17 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import type { IUser } from '../../types/user.types';
+import { authService } from '../../services/features/auth.service';
 import {
   TextField,
   Button,
-  Typography,
   Box,
   CircularProgress,
   Alert,
   InputAdornment,
   IconButton,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
+  Stack,
+  Typography,
 } from '@mui/material';
 import {
   Visibility,
@@ -26,7 +22,6 @@ import {
   Lock as LockIcon,
   ChevronRight as ChevronRightIcon,
   Person as PersonIcon,
-  Class as ClassIcon,
 } from '@mui/icons-material';
 import AuthLayout from '../../components/layouts/AuthLayout';
 
@@ -34,7 +29,6 @@ const registerSchema = z
   .object({
     fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
     email: z.string().email('Email không hợp lệ'),
-    grade: z.string().min(1, 'Vui lòng chọn khối lớp'),
     password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
     confirmPassword: z.string().min(6, 'Vui lòng xác nhận mật khẩu'),
   })
@@ -45,21 +39,12 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-const gradeLevels = [
-  { value: '8', label: 'Lớp 8' },
-  { value: '9', label: 'Lớp 9' },
-  { value: '10', label: 'Lớp 10' },
-  { value: '11', label: 'Lớp 11' },
-  { value: '12', label: 'Lớp 12' },
-  { value: '13', label: 'Ôn thi Đại học' },
-];
-
 const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const loginToStore = useAuthStore((state) => state.loginToStore);
 
   const {
     register,
@@ -70,50 +55,45 @@ const RegisterPage: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
+    console.log('Đang gửi dữ liệu đăng ký:', data);
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
-    // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-    // try {
-    //   const response = await authService.register({
-    //     fullName: data.fullName,
-    //     email: data.email,
-    //     password: data.password,
-    //     grade: parseInt(data.grade)
-    //   });
-    //   const { token, user } = response.data;
-    //   loginToStore(token, user);
-    //   navigate('/');
-    // } catch (err: any) {
-    //   console.error("Đăng ký thất bại", err);
-    //   setError(err.response?.data?.message || 'Đăng ký thất bại');
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-    console.log('Đang gửi dữ liệu đăng ký:', data);
-    setTimeout(() => {
-      const fakeUser: IUser = {
-        id: 2,
+    try {
+      await authService.register({
         fullName: data.fullName,
         email: data.email,
-        role: 'student',
-      };
-      const fakeToken = 'fake-jwt-token-987654';
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      });
 
-      loginToStore(fakeToken, fakeUser);
+      console.log('Đăng ký thành công');
+      setSuccess(true);
+
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err: any) {
+      console.error('Đăng ký thất bại', err);
+      setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
       setLoading(false);
-      navigate('/');
-    }, 1500);
-    // ---- HẾT DỮ LIỆU CỨNG ----
+    }
   };
 
   return (
-    <AuthLayout title="Đăng ký tài khoản" subtitle="Tham gia Nền tảng Học Hóa học FPT">
+    <AuthLayout title="Đăng ký tài khoản" subtitle="Tham gia Nền tảng Học Hóa học">
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+          Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...
         </Alert>
       )}
 
@@ -143,6 +123,12 @@ const RegisterPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{
+              gridColumn: { sm: 'span 2' },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
           />
 
           <TextField
@@ -161,39 +147,13 @@ const RegisterPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{
+              gridColumn: { sm: 'span 2' },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
           />
-
-          <FormControl
-            fullWidth
-            required
-            error={!!errors.grade}
-            sx={{ gridColumn: { sm: 'span 2' } }}
-          >
-            <InputLabel id="grade-label">Khối lớp của bạn</InputLabel>
-            <Select
-              labelId="grade-label"
-              label="Khối lớp của bạn"
-              defaultValue=""
-              disabled={loading}
-              {...register('grade')}
-              startAdornment={
-                <InputAdornment position="start" sx={{ ml: 0.5, mr: 1 }}>
-                  <ClassIcon sx={{ color: 'text.secondary' }} />
-                </InputAdornment>
-              }
-            >
-              {gradeLevels.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.grade && (
-              <Typography variant="caption" color="error.main" sx={{ ml: 2, mt: 0.5 }}>
-                {errors.grade.message}
-              </Typography>
-            )}
-          </FormControl>
 
           <TextField
             required
@@ -223,6 +183,11 @@ const RegisterPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
           />
 
           <TextField
@@ -242,6 +207,11 @@ const RegisterPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
           />
         </Box>
 
@@ -249,7 +219,7 @@ const RegisterPage: React.FC = () => {
           type="submit"
           fullWidth
           variant="contained"
-          disabled={loading}
+          disabled={loading || success}
           endIcon={loading ? null : <ChevronRightIcon />}
           sx={{
             mt: 3,
@@ -258,6 +228,8 @@ const RegisterPage: React.FC = () => {
             borderRadius: 2,
             fontSize: '1rem',
             fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: 3,
           }}
         >
           {loading ? (
@@ -265,25 +237,28 @@ const RegisterPage: React.FC = () => {
               <CircularProgress size={24} color="inherit" />
               <span>Đang tạo tài khoản...</span>
             </Box>
+          ) : success ? (
+            'Đăng ký thành công!'
           ) : (
             'Đăng ký'
           )}
         </Button>
 
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
+        <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5} sx={{ mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Đã có tài khoản?{' '}
-            <Button
-              component={RouterLink}
-              to="/login"
-              variant="text"
-              size="small"
-              sx={{ textTransform: 'none', fontWeight: 600 }}
-            >
-              Đăng nhập ngay
-            </Button>
+            Đã có tài khoản?
           </Typography>
-        </Box>
+          <Button
+            component={RouterLink}
+            to="/login"
+            variant="text"
+            size="small"
+            disabled={loading}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Đăng nhập ngay
+          </Button>
+        </Stack>
       </Box>
     </AuthLayout>
   );

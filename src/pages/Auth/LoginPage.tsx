@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import type { IUser } from '../../types/user.types';
+import { authService } from '../../services/features/auth.service';
+import { getUserFromToken } from '../../utils/jwt.utils';
 import {
   TextField,
   Button,
@@ -27,7 +28,7 @@ import {
 import AuthLayout from '../../components/layouts/AuthLayout';
 
 const loginSchema = z.object({
-  email: z.email('Email không hợp lệ'),
+  email: z.string().email('Email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
 });
 
@@ -53,45 +54,54 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-    // try {
-    //   const response = await authService.login(data.email, data.password);
-    //   const { token, user } = response.data;
-    //   loginToStore(token, user);
-    //   navigate(user.role === 'student' ? '/' : '/admin/questions');
-    // } catch (err: any) {
-    //   console.error("Đăng nhập thất bại", err);
-    //   setError(err.response?.data?.message || 'Đăng nhập thất bại');
-    // } finally {
-    //   setLoading(false);
-    // }
+    try {
+      // 1. Login và lấy token + role
+      const loginResponse = await authService.login({
+        email: data.email,
+        password: data.password,
+      });
 
-    // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-    setTimeout(() => {
-      const isStudent = !data.email.includes('admin');
+      console.log('Login successful:', loginResponse);
 
-      const fakeUser: IUser = isStudent
-        ? { id: 1, fullName: 'Nguyễn Văn An', email: data.email, role: 'student' }
-        : { id: 99, fullName: 'Quản Trị Viên', email: data.email, role: 'admin' };
+      const { token, role } = loginResponse.data;
 
-      const fakeToken = 'fake-jwt-token-123456';
+      // 2. Decode JWT token để lấy user info
+      const userFromToken = getUserFromToken(token);
+      
+      if (!userFromToken) {
+        throw new Error('Invalid token');
+      }
 
-      loginToStore(fakeToken, fakeUser);
-      setLoading(false);
+      // 3. Override role from login response (more reliable)
+      const user = {
+        ...userFromToken,
+        role: role, // Use role from login response
+      };
 
-      if (fakeUser.role === 'student') {
+      console.log('User info from token:', user);
+
+      // 4. Lưu vào store
+      loginToStore(token, user);
+
+      // 5. Navigate dựa trên role
+      if (role.toLowerCase() === 'student') {
         navigate('/');
       } else {
         navigate('/admin/questions');
       }
-    }, 1500);
-    // ---- HẾT DỮ LIỆU CỨNG ----
+
+    } catch (err: any) {
+      console.error('Đăng nhập thất bại', err);
+      setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AuthLayout
       title="Đăng nhập"
-      subtitle="Chào mừng đến với Nền tảng Học Hóa học BinBin"
+      subtitle="Chào mừng đến với Nền tảng Học Hóa học"
     >
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -241,13 +251,7 @@ const LoginPage: React.FC = () => {
             }}
           >
             <Box component="span" sx={{ display: 'block', fontSize: '0.75rem', color: 'text.secondary', mb: 0.5 }}>
-              Tài khoản demo
-            </Box>
-            <Box component="span" sx={{ display: 'block', fontWeight: 600, fontSize: '0.875rem' }}>
-              student@example.com | admin@example.com
-            </Box>
-            <Box component="span" sx={{ display: 'block', fontSize: '0.75rem', color: 'text.secondary' }}>
-              Mật khẩu: 123456
+              💡 Tip: Nhập email và mật khẩu của bạn để đăng nhập
             </Box>
           </Box>
         </Stack>

@@ -9,13 +9,19 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const { isAuthenticated, user } = useAuthStore();
 
+  // Check if user is authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Nếu user không có quyền, đá về trang chính của họ
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/'} replace />;
+  // Check if user has the required role
+  if (allowedRoles && user) {
+    const userRole = user.role.toLowerCase() as 'student' | 'admin';
+    
+    if (!allowedRoles.includes(userRole)) {
+      // Redirect based on user's actual role
+      return <Navigate to={userRole === 'admin' ? '/admin' : '/'} replace />;
+    }
   }
 
   return <Outlet />;

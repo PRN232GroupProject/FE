@@ -191,7 +191,7 @@ const StudentLayout: React.FC = () => {
                   {user.fullName}
                 </Typography>
                 <Chip 
-                  label={user.role === 'student' ? 'Học sinh' : 'Admin'}
+                  label="Học sinh"
                   size="small"
                   sx={{
                     bgcolor: 'rgba(255,255,255,0.2)',
