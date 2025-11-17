@@ -6,10 +6,6 @@ import {
   Divider,
   Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   InputAdornment,
   Stack,
   CircularProgress,
@@ -18,24 +14,20 @@ import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import {
   Person as PersonIcon,
   Email as EmailIcon,
-  School as SchoolIcon,
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Phone as PhoneIcon,
 } from '@mui/icons-material';
 
 export interface ProfileFormData {
   fullName: string;
   email: string;
-  phone?: string;
   grade?: string;
 }
 
 interface ProfileFormProps {
   isEditing: boolean;
   loading: boolean;
-  grade: string;
   register: UseFormRegister<ProfileFormData>;
   errors: FieldErrors<ProfileFormData>;
   onEdit: () => void;
@@ -43,19 +35,9 @@ interface ProfileFormProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-const gradeLevels = [
-  { value: '8', label: 'Lớp 8' },
-  { value: '9', label: 'Lớp 9' },
-  { value: '10', label: 'Lớp 10' },
-  { value: '11', label: 'Lớp 11' },
-  { value: '12', label: 'Lớp 12' },
-  { value: '13', label: 'Ôn thi Đại học' },
-];
-
 const ProfileForm: React.FC<ProfileFormProps> = ({
   isEditing,
   loading,
-  grade,
   register,
   errors,
   onEdit,
@@ -126,45 +108,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             error={!!errors.email}
             helperText={errors.email?.message}
           />
-
-          {/* Phone */}
-          <TextField
-            label="Số điện thoại"
-            fullWidth
-            disabled={!isEditing}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIcon sx={{ color: 'text.secondary' }} />
-                </InputAdornment>
-              ),
-            }}
-            {...register('phone')}
-            error={!!errors.phone}
-            helperText={errors.phone?.message}
-          />
-
-          {/* Grade */}
-          <FormControl fullWidth disabled={!isEditing} error={!!errors.grade}>
-            <InputLabel id="grade-label">Lớp</InputLabel>
-            <Select
-              labelId="grade-label"
-              label="Lớp"
-              {...register('grade')}
-              defaultValue={grade}
-              startAdornment={
-                <InputAdornment position="start" sx={{ ml: 0.5, mr: 1 }}>
-                  <SchoolIcon sx={{ color: 'text.secondary' }} />
-                </InputAdornment>
-              }
-            >
-              {gradeLevels.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
 
           {/* Action Buttons */}
           {isEditing && (

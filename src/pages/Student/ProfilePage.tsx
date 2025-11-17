@@ -13,48 +13,42 @@ import PageHeader from '../../components/shared/PageHeader';
 import ProfileAvatar from './components/profile/ProfileAvatar';
 import ProfileStatsCard from './components/profile/ProfileStateCard';
 import ProfileForm, { type ProfileFormData } from './components/profile/ProfileForm';
+import { useCurrentUser, useUpdateProfile } from '../../hooks/useUser';
+import { useTestHistory } from '../../hooks/useTestData';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import EmptyState from '../../components/shared/EmptyState';
 
-// Validation schema
+// Validation schema (Không có phone, không có grade)
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
-  phone: z
-    .string()
-    .regex(/^[0-9]{10}$/, 'Số điện thoại phải có 10 chữ số')
-    .optional()
-    .or(z.literal('')),
-  grade: z.string().optional(),
 });
-
-interface IUserProfile extends ProfileFormData {
-  id: number;
-  role: string;
-  joinedDate: string;
-  totalTests: number;
-  completedTests: number;
-  averageScore: number;
-}
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [profileData, setProfileData] = useState<IUserProfile>({
-    id: user?.id || 1,
-    fullName: user?.fullName || 'Nguyễn Văn An',
-    email: user?.email || 'student@example.com',
-    phone: '0123456789',
-    grade: '11',
-    role: user?.role || 'student',
-    joinedDate: '2024-09-01',
-    totalTests: 15,
-    completedTests: 12,
-    averageScore: 8.5,
-  });
+  // Hook lấy thông tin user hiện tại
+  const {
+    data: currentUser,
+    isLoading: isLoadingUser,
+    isError: isErrorUser,
+  } = useCurrentUser();
 
+  // Hook lấy lịch sử (để hiển thị stats)
+  // ⚠️ Endpoint này là GIẢ ĐỊNH, nhưng hook đã sẵn sàng
+  const {
+    data: historyData,
+    isLoading: isLoadingHistory,
+    isError: isErrorHistory,
+  } = useTestHistory(user?.id || 0);
+
+  // Hook cập nhật thông tin
+  const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateProfile();
+
+  // Setup React Hook Form
   const {
     register,
     handleSubmit,
@@ -62,83 +56,79 @@ const ProfilePage: React.FC = () => {
     reset,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      fullName: profileData.fullName,
-      email: profileData.email,
-      phone: profileData.phone,
-      grade: profileData.grade,
-    },
   });
 
+  // Effect: Tải dữ liệu từ API vào form khi có
   useEffect(() => {
-    if (profileData) {
+    if (currentUser) {
       reset({
-        fullName: profileData.fullName,
-        email: profileData.email,
-        phone: profileData.phone,
-        grade: profileData.grade,
+        fullName: currentUser.fullName,
+        email: currentUser.email,
       });
     }
-  }, [profileData, reset]);
+  }, [currentUser, reset]);
 
+  // Hàm xử lý khi submit form
   const onSubmit: SubmitHandler<ProfileFormData> = async (data) => {
-    setLoading(true);
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
+    if (!currentUser) return;
 
-    // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-    // try {
-    //   const response = await userService.updateProfile(profileData.id, {
-    //      ...data,
-    //      grade: parseInt(data.grade) // Chuyển '11' về 11
-    //    });
-    //   setProfileData({ ...profileData, ...response.data });
-    //   setSuccess(true);
-    //   setIsEditing(false);
-    // } catch (err: any) {
-    //   setError(err.response?.data?.message || 'Cập nhật thất bại');
-    // } finally {
-    //   setLoading(false);
-    // }
-
-    // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-    setTimeout(() => {
-      setProfileData({ ...profileData, ...data });
-      setSuccess(true);
+    try {
+      await updateUser(data);
+      setSuccess('Cập nhật thông tin thành công!');
       setIsEditing(false);
-      setLoading(false);
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || 'Cập nhật thất bại');
+    }
   };
 
+  // Hàm xử lý khi bấm Hủy
   const handleCancel = () => {
-    reset({
-      fullName: profileData.fullName,
-      email: profileData.email,
-      phone: profileData.phone,
-      grade: profileData.grade,
-    });
+    if (currentUser) {
+      reset({
+        fullName: currentUser.fullName,
+        email: currentUser.email,
+      });
+    }
     setIsEditing(false);
     setError(null);
   };
 
+  // Xử lý trạng thái Loading
+  if (isLoadingUser || isLoadingHistory) {
+    return <LoadingSpinner />;
+  }
+
+  // Xử lý trạng thái Error
+  if (isErrorUser || isErrorHistory || !currentUser) {
+    return (
+      <EmptyState
+        title="Lỗi"
+        description="Không thể tải được thông tin cá nhân. Vui lòng thử lại sau."
+      />
+    );
+  }
+
+  // Chuẩn bị dữ liệu cho thẻ Stats
   const statsData = [
     {
       icon: SchoolIcon,
-      value: profileData.totalTests,
+      value: historyData?.totalTests || 0,
       label: 'Tổng số bài thi',
       color: '#FF6C00',
       iconColor: 'primary.main',
     },
     {
       icon: CheckCircleIcon,
-      value: profileData.completedTests,
+      value: historyData?.completedTests.length || 0,
       label: 'Đã hoàn thành',
       color: '#4CAF50',
       iconColor: 'success.main',
     },
     {
       icon: AssessmentIcon,
-      value: profileData.averageScore,
+      value: historyData?.averageScore || 0,
       label: 'Điểm trung bình',
       color: '#0055A5',
       iconColor: 'secondary.main',
@@ -153,7 +143,7 @@ const ProfilePage: React.FC = () => {
       />
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(false)}>
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
           Cập nhật thông tin thành công!
         </Alert>
       )}
@@ -172,16 +162,16 @@ const ProfilePage: React.FC = () => {
           md: '1fr 2fr',
         }}
       >
-        {/* Avatar Card */}
+        {/* Cột trái: Avatar */}
         <ProfileAvatar
-          fullName={profileData.fullName}
-          role={profileData.role}
-          joinedDate={profileData.joinedDate}
+          fullName={currentUser.fullName}
+          role={currentUser.role}
+          joinedDate={currentUser.createdAt}
         />
 
-        {/* Stats & Form */}
+        {/* Cột phải: Stats & Form */}
         <Box>
-          {/* Stats Cards */}
+          {/* Thẻ Stats */}
           <Box
             display="grid"
             gap={2}
@@ -203,11 +193,10 @@ const ProfilePage: React.FC = () => {
             ))}
           </Box>
 
-          {/* Profile Form */}
+          {/* Form thông tin cá nhân */}
           <ProfileForm
             isEditing={isEditing}
-            loading={loading}
-            grade={profileData.grade}
+            loading={isUpdating}
             register={register}
             errors={errors}
             onEdit={() => setIsEditing(true)}

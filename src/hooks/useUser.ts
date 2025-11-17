@@ -1,7 +1,8 @@
 // src/hooks/useUser.ts
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { userService } from '../services/features/user.service';
 import { useAuthStore } from '../stores/authStore';
+import type { IUpdateProfileRequest } from '../types/user.types'
 
 export const USER_QUERY_KEY = 'currentUser';
 
@@ -33,4 +34,24 @@ export const useCurrentUser = () => {
   });
 };
 
-// ... (Bạn có thể thêm useUpdateProfile (mutation) ở đây sau)
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IUpdateProfileRequest) => 
+      userService.updateProfile(data),
+
+    onSuccess: (response) => {
+      const updatedUser = response.data;
+      const { token } = useAuthStore.getState();
+
+      if (token && updatedUser) {
+        // 1. Cập nhật user trong Zustand store (để Header thay đổi)
+        useAuthStore.getState().loginToStore(token, updatedUser);
+      }
+      
+      // 2. Làm mới (invalidate) query 'currentUser'
+      queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY] });
+    },
+  });
+};
