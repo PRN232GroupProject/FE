@@ -1,7 +1,6 @@
 import type { ApiResponse } from '../../types/api.types';
 import type { ILoginRequest, ILoginResponse, IRegisterRequest } from '../../types/auth.types';
 import axiosInstance from '../constant/axiosInstance';
-import { cacheService } from './cacheService';
 
 export const authService = {
 
@@ -61,13 +60,11 @@ export const authService = {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
       // Clear all cache data on logout
-      cacheService.clear();
     } catch (error) {
       console.error('Logout failed:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('role');
       // Clear all cache data even if logout fails
-      cacheService.clear();
     }
   },
 
