@@ -3,9 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom'; // <-- Thêm 'Link'
-import { useAuthStore } from '../../store/authStore';
 import { authService } from '../../services/features/auth.service';
-import { userService } from '../../services/features/user.service';
 import {
   Container,
   TextField,
@@ -43,7 +41,6 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const loginToStore = useAuthStore((state) => state.loginToStore);
   
   const {
     register,
@@ -63,16 +60,9 @@ const LoginPage: React.FC = () => {
       const response = await authService.login(data);
       const { token, role } = response.data;
       
-      // Store token and role in auth service
+      // Store token and role
       authService.setToken(token);
       localStorage.setItem('role', typeof role === 'string' ? role : String(role));
-      
-      // Fetch complete user data from the API
-      const userResponse = await userService.getCurrentUser();
-      const user = userResponse.data;
-      
-      // Store user data in zustand store
-      loginToStore(token, user);
       
       // Navigate to homepage
       navigate('/');

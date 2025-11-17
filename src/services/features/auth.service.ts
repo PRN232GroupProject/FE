@@ -1,3 +1,4 @@
+import { get } from 'react-hook-form';
 import type { ApiResponse } from '../../types/api.types';
 import type { ILoginRequest, ILoginResponse, IRegisterRequest } from '../../types/auth.types';
 import axiosInstance from '../constant/axiosInstance';
@@ -55,5 +56,9 @@ export const authService = {
   setToken(token: string): void {
     localStorage.setItem('token', token);
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
+  },
+
+  getRole(): string | null {
+    return localStorage.getItem('role');
+  },
 };

@@ -1,12 +1,15 @@
 // Dùng cho HomePage
 export interface ILessonInfo {
-  id: number;
+  lessonId: number;
   title: string;
+  objectives: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface IChapter {
-  id: number;
-  name: string;
+  chapterId: number;
+  chapterName: string;
   grade: number;
   description: string;
   lessons: ILessonInfo[];

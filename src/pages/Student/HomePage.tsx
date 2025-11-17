@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { IChapter } from '../../types/content.types';
+import { contentService } from '../../services/features/content.service';
+import { userService } from '../../services/features/user.service';
+import { authService } from '../../services/features/auth.service';
 import {
   Box,
   Typography,
@@ -42,118 +45,65 @@ const HomePage: React.FC = () => {
   const [chapters, setChapters] = useState<IChapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const { isAuthenticated, user } = useAuthStore();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const { user, loginToStore } = useAuthStore();
   
   const [selectedGrade, setSelectedGrade] = useState('all');
+
+  // Get user role on mount
+  useEffect(() => {
+    const role = authService.getRole();
+    setUserRole(role);
+    console.log('User role:', role);
+  }, []);
+
+  // Fetch user data on mount if not already loaded
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const userResponse = await userService.getCurrentUser();
+            loginToStore(token, userResponse.data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user, loginToStore]);
 
   useEffect(() => {
     const fetchChapters = async () => {
       setLoading(true);
       
-      const gradeFilter = selectedGrade === 'all' ? null : parseInt(selectedGrade);
-      
-      // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-      // try {
-      //   let gradeToFetch = gradeFilter;
-      //   if (isAuthenticated && user && !gradeFilter) {
-      //     gradeToFetch = user.grade; 
-      //     setSelectedGrade(user.grade.toString());
-      //   }
-      //
-      //   const response = await contentService.getChapters({ grade: gradeToFetch });
-      //   setChapters(response.data);
-      // } catch (error) {
-      //   console.error("Lỗi khi tải danh sách chương", error);
-      // } finally {
-      //   setLoading(false);
-      // }
+      try {
+        const response = await contentService.getChapters();
+        let allChapters = response.data;
 
-      // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-      setTimeout(() => {
-        const stubData: IChapter[] = [
-          {
-            id: 1,
-            name: 'Chương 1: Sự điện li',
-            grade: 11,
-            description:
-              'Nội dung về chất điện li, axit, bazơ, muối, pH và các phản ứng trao đổi ion.',
-            lessons: [
-              { id: 1, title: 'Bài 1: Axit, Bazơ và Muối' },
-              { id: 2, title: 'Bài 2: pH và Chất chỉ thị' },
-              { id: 3, title: 'Bài 3: Phản ứng trao đổi ion' },
-            ],
-          },
-          {
-            id: 2,
-            name: 'Chương 2: Nitơ - Photpho',
-            grade: 11,
-            description:
-              'Các hợp chất của Nitơ, Photpho và các bài toán liên quan đến chu trình Nitơ.',
-            lessons: [
-              { id: 4, title: 'Bài 4: Amoniac (NH3)' },
-              { id: 5, title: 'Bài 5: Axit Nitric (HNO3)' },
-            ],
-          },
-          {
-            id: 3,
-            name: 'Chương 3: Carbon - Silic',
-            grade: 11,
-            description:
-              'Nghiên cứu về Carbon, Silic, các hợp chất vô cơ và ứng dụng trong đời sống.',
-            lessons: [
-              { id: 6, title: 'Bài 6: Carbon và hợp chất' },
-              { id: 7, title: 'Bài 7: Silic và Silicat' },
-              { id: 8, title: 'Bài 8: Công nghiệp Silicate' },
-            ],
-          },
-          {
-            id: 4,
-            name: 'Chương 4: Đại cương kim loại',
-            grade: 12,
-            description:
-              'Tính chất chung của kim loại, dãy điện hóa và các phản ứng oxi hóa - khử.',
-            lessons: [
-              { id: 9, title: 'Bài 9: Tính chất chung của kim loại' },
-              { id: 10, title: 'Bài 10: Dãy điện hóa kim loại' },
-            ],
-          },
-          {
-            id: 5,
-            name: 'Chương 5: Polyme',
-            grade: 12,
-            description:
-              'Khái niệm, cấu trúc, và ứng dụng của vật liệu polyme.',
-            lessons: [
-              { id: 11, title: 'Bài 11: Đại cương về Polyme' },
-              { id: 12, title: 'Bài 12: Vật liệu Polyme' },
-            ],
-          },
-          {
-            id: 6,
-            name: 'Chương 1: Bảng tuần hoàn (Lớp 10)',
-            grade: 10,
-            description:
-              'Cấu trúc bảng tuần hoàn, định luật tuần hoàn, và xu hướng biến đổi.',
-            lessons: [
-              { id: 13, title: 'Bài 13: Bảng tuần hoàn' },
-              { id: 14, title: 'Bài 14: Xu hướng biến đổi' },
-            ],
-          },
-        ];
-        
-        let filteredData = stubData;
-        if (gradeFilter) {
-          filteredData = stubData.filter(c => c.grade === gradeFilter);
+        console.log('Fetched chapters:', allChapters);
+
+        // Filter by selected grade if not 'all'
+        if (selectedGrade !== 'all') {
+          allChapters = allChapters.filter(
+            (chapter) => chapter.grade.toString() === selectedGrade
+          );
         }
-        
-        setChapters(filteredData);
+
+        setChapters(allChapters);
+      } catch (error) {
+        console.error('Failed to fetch chapters:', error);
+        setChapters([]);
+      } finally {
         setLoading(false);
-      }, 500);
-      // ---- HẾT DỮ LIỆU CỨNG ----
+      }
     };
 
     fetchChapters();
-  }, [selectedGrade, isAuthenticated, user]);
+  }, [selectedGrade]);
 
   if (loading) {
     return (
@@ -164,7 +114,7 @@ const HomePage: React.FC = () => {
   }
 
   const filteredChaptersBySearch = chapters.filter((chapter) =>
-    chapter.name.toLowerCase().includes(searchTerm.toLowerCase())
+    chapter.chapterName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -198,7 +148,7 @@ const HomePage: React.FC = () => {
             />
             <Chip
               icon={<BookIcon />}
-              label={`${chapters.reduce((acc, ch) => acc + ch.lessons.length, 0)} Bài học`}
+              label={`${chapters.reduce((acc, ch) => acc + (ch.lessons?.length || 0), 0)} Bài học`}
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
             />
           </Stack>
@@ -294,12 +244,13 @@ const HomePage: React.FC = () => {
         }}
       >
         {filteredChaptersBySearch.map((chapter) => {
-          const completedLessons = Math.floor(Math.random() * chapter.lessons.length);
-          const progress = (completedLessons / chapter.lessons.length) * 100;
+          const lessonsCount = chapter.lessons?.length || 0;
+          const completedLessons = Math.floor(Math.random() * lessonsCount);
+          const progress = lessonsCount > 0 ? (completedLessons / lessonsCount) * 100 : 0;
 
           return (
             <Card
-              key={chapter.id}
+              key={chapter.chapterId}
               elevation={3}
               sx={{
                 height: '100%',
@@ -334,7 +285,7 @@ const HomePage: React.FC = () => {
                     }}
                   />
                   <Chip
-                    label={`${chapter.lessons.length} bài`}
+                    label={`${lessonsCount} bài`}
                     size="small"
                     sx={{
                       bgcolor: 'rgba(255,255,255,0.25)',
@@ -344,7 +295,7 @@ const HomePage: React.FC = () => {
                   />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                  {chapter.name}
+                  {chapter.chapterName}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <LinearProgress
@@ -365,7 +316,7 @@ const HomePage: React.FC = () => {
                   </Typography>
                 </Box>
                 <Typography variant="caption">
-                  {completedLessons}/{chapter.lessons.length} bài hoàn thành
+                  {completedLessons}/{lessonsCount} bài hoàn thành
                 </Typography>
               </Box>
 
@@ -386,11 +337,11 @@ const HomePage: React.FC = () => {
                 </Typography>
 
                 <Box sx={{ mb: 2, flexGrow: 1 }}>
-                  {chapter.lessons.map((lesson, idx) => (
+                  {chapter.lessons?.map((lesson, idx) => (
                     <ListItemButton
-                      key={lesson.id}
+                      key={lesson.lessonId}
                       component={RouterLink}
-                      to={`/lesson/${lesson.id}`}
+                      to={`/lesson/${lesson.lessonId}`}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -428,21 +379,23 @@ const HomePage: React.FC = () => {
                   ))}
                 </Box>
 
-                <Button
-                  component={RouterLink}
-                  to={`/lesson/${chapter.lessons[0].id}`}
-                  variant="contained"
-                  fullWidth
-                  startIcon={<PlayIcon />}
-                  sx={{
-                    mt: 'auto',
-                    borderRadius: 2,
-                    py: 1.2,
-                    fontWeight: 600,
-                  }}
-                >
-                  Bắt đầu học
-                </Button>
+                {lessonsCount > 0 && (
+                  <Button
+                    component={RouterLink}
+                    to={`/lesson/${chapter.lessons[0].lessonId}`}
+                    variant="contained"
+                    fullWidth
+                    startIcon={<PlayIcon />}
+                    sx={{
+                      mt: 'auto',
+                      borderRadius: 2,
+                      py: 1.2,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Bắt đầu học
+                  </Button>
+                )}
               </CardContent>
             </Card>
           );
