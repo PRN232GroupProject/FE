@@ -177,6 +177,7 @@ export interface ITestAnswerDetail {
 export interface ITestResult {
   score: number;
   totalCorrect: number;
+  testId: number;
   sessionDetails: {
     id: number;
     testName: string;

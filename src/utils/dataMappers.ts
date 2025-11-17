@@ -64,6 +64,7 @@ export const mapTestResultResponse = (
 ): ITestResult => ({
   score: response.score,
   totalCorrect: response.totalCorrect,
+  testId: response.testId,
   sessionDetails: {
     id: response.sessionId,
     testName: response.testName,
