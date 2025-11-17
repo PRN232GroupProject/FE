@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Box, Typography, Chip, Button, Stack, alpha } from '@mui/material';
+import { Card, CardContent, Box, Typography, Chip, Button, alpha } from '@mui/material';
 import {
   PictureAsPdf as PdfIcon,
   Videocam as VideoIcon,
@@ -7,21 +7,12 @@ import {
   Download as DownloadIcon,
   MenuBook as BookIcon,
 } from '@mui/icons-material';
-
-interface IResource {
-  id: number;
-  title: string;
-  description: string;
-  type: 'pdf' | 'video' | 'link';
-  category: 'theory' | 'formula' | 'periodic-table' | 'exercise';
-  url: string;
-  size?: string;
-  views?: number;
-}
+import type { IResource } from '../../../../types/content.types';;
 
 interface ResourceCardProps {
   resource: IResource;
 }
+
 
 const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
   const getResourceIcon = (type: string) => {
@@ -103,19 +94,6 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {resource.description}
         </Typography>
-
-        <Stack spacing={1} sx={{ mb: 2 }}>
-          {resource.size && (
-            <Typography variant="caption" color="text.secondary">
-              📦 Dung lượng: {resource.size}
-            </Typography>
-          )}
-          {resource.views && (
-            <Typography variant="caption" color="text.secondary">
-              👁️ Lượt xem: {resource.views}
-            </Typography>
-          )}
-        </Stack>
 
         <Button
           variant="contained"

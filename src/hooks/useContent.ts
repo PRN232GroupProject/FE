@@ -5,6 +5,7 @@ import { resourceService } from '../services/features/resource.service';
 import {
   mapChapterResponse,
   mapLessonDetailResponse,
+  mapResourceResponse,
 } from '../utils/dataMappers';
 
 export const CONTENT_QUERY_KEY = 'content';
@@ -64,5 +65,16 @@ export const useMarkResourceCompleted = () => {
     onError: (error) => {
       console.error('Failed to mark resource:', error.message);
     },
+  });
+};
+
+export const useAllResources = () => {
+  return useQuery({
+    queryKey: [CONTENT_QUERY_KEY, 'allResources'],
+    queryFn: async () => {
+      const response = await resourceService.getAllResources();
+      return response.data.map(mapResourceResponse);
+    },
+    staleTime: 1000 * 60 * 5, // Cache 5 phút
   });
 };

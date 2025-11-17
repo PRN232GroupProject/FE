@@ -45,6 +45,7 @@ export interface IResource {
   url: string;
   description?: string;
   isCompleted?: boolean;
+  lessonId: number;
 }
 
 export interface IResourceResponse {
@@ -76,4 +77,6 @@ export const mapResourceResponse = (response: IResourceResponse): IResource => (
   type: (response.resourceType as any) || 'document',
   url: response.resourceUrl || '',
   description: response.resourceDescription,
+  isCompleted: response.isCompleted || false,
+  lessonId: response.lessonId,
 });

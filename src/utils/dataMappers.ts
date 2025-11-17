@@ -12,7 +12,6 @@ import type {
   ITestResultResponse,
 } from '../types/test.types';
 
-
 export const mapChapterResponse = (response: IChapterResponse): IChapter => ({
   id: response.chapterId,
   name: response.chapterName,
@@ -32,7 +31,8 @@ export const mapResourceResponse = (
   type: (response.resourceType as any) || 'document',
   url: response.resourceUrl || '',
   description: response.resourceDescription,
-  isCompleted: response.isCompleted || false, 
+  isCompleted: response.isCompleted || false,
+  lessonId: response.lessonId, // 🚀 THÊM DÒNG NÀY
 });
 
 export const mapLessonDetailResponse = (
@@ -44,7 +44,6 @@ export const mapLessonDetailResponse = (
   content: response.content || '',
   resources: (response.resources || []).map(mapResourceResponse),
 });
-
 
 export const mapTestResponse = (response: any): ITest => ({
   id: response.id,
@@ -71,5 +70,5 @@ export const mapTestResultResponse = (
     startTime: response.startTime,
     endTime: response.endTime,
   },
-  answers: response.answers, 
+  answers: response.answers,
 });
