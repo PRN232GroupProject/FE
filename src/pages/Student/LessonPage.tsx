@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; 
 import { useParams } from 'react-router-dom';
 import { Box, Paper, Card, CardContent, Typography, Stack, Chip, Button, alpha } from '@mui/material';
 import {
@@ -6,104 +6,59 @@ import {
   CheckCircle as CheckCircleIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
-import type { ILessonDetail, IResource } from '../../types/content.types';
+import type { IResource } from '../../types/content.types'; 
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ResourcePlayer from './components/lesson/ResourcePlayer';
 import ResourceSidebar from './components/lesson/ResourceSideBar';
+import { useLessonDetail, useMarkResourceCompleted } from '../../hooks/useContent'; 
 
 const LessonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [lesson, setLesson] = useState<ILessonDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const lessonId = Number(id); 
+
+  const {
+    data: lesson,
+    isLoading,
+    isError,
+  } = useLessonDetail(lessonId);
+
+  const { mutate: markAsComplete, isPending: isMarkingComplete } =
+    useMarkResourceCompleted();
+
   const [selectedResource, setSelectedResource] = useState<IResource | null>(null);
-  const [completedResources, setCompletedResources] = useState<number[]>([]);
 
   useEffect(() => {
-    if (!id) return;
-    const fetchLesson = async () => {
-      setLoading(true);
-
-      // PHẦN TÍCH HỢP API (Sẽ MỞ COMMENT KHI BE SẴN SÀNG)
-      // try {
-      //   const response = await contentService.getLessonDetail(id);
-      //   setLesson(response.data);
-      //   if (response.data.resources.length > 0) {
-      //     setSelectedResource(response.data.resources[0]);
-      //   }
-      // } catch (error) {
-      //   console.error("Lỗi khi tải bài học", error);
-      // } finally {
-      //   setLoading(false);
-      // }
-
-      // ---- DỮ LIỆU CỨNG (ĐỂ PHÁT TRIỂN UI) ----
-      setTimeout(() => {
-        const stubData: ILessonDetail = {
-          id: parseInt(id),
-          title: `Bài ${id}: Axit, Bazơ và Muối`,
-          objectives:
-            'Hiểu rõ khái niệm axit, bazơ theo thuyết Arrhenius và Bronsted. Nắm vững cách tính pH và các phản ứng đặc trưng của axit, bazơ trong dung dịch.',
-          resources: [
-            {
-              id: 1,
-              title: 'Video bài giảng: Giới thiệu Axit-Bazơ',
-              type: 'video',
-              url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            },
-            {
-              id: 2,
-              title: 'Video: Phản ứng trung hòa',
-              type: 'video',
-              url: 'https://www.youtube.com/watch?v=L-2Of9aznxg',
-            },
-            {
-              id: 3,
-              title: 'Tài liệu PDF: Lý thuyết Axit-Bazơ',
-              type: 'pdf',
-              url: '/docs/axit_bazo.pdf',
-            },
-            {
-              id: 4,
-              title: 'Tài liệu PDF: Bài tập vận dụng',
-              type: 'pdf',
-              url: '/docs/bai_tap.pdf',
-            },
-          ],
-        };
-        setLesson(stubData);
-        if (stubData.resources.length > 0) {
-          setSelectedResource(stubData.resources[0]);
-        }
-        setCompletedResources([1]);
-        setLoading(false);
-      }, 800);
-      // ---- HẾT DỮ LIỆU CỨNG ----
-    };
-    fetchLesson();
-  }, [id]);
+    if (lesson && lesson.resources.length > 0) {
+      if (!selectedResource) {
+        setSelectedResource(lesson.resources[0]);
+      }
+    }
+  }, [lesson, selectedResource]); 
 
   const handleResourceComplete = (resourceId: number) => {
-    if (!completedResources.includes(resourceId)) {
-      setCompletedResources([...completedResources, resourceId]);
-      // API call để lưu tiến độ
-      // await contentService.markResourceComplete(resourceId);
-    }
+    markAsComplete(resourceId);
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (!lesson) {
+  if (isError || !lesson) {
     return <EmptyState title="Không tìm thấy bài học" />;
   }
 
-  const progress = (completedResources.length / lesson.resources.length) * 100;
+  const completedResourcesList = useMemo(
+    () => lesson.resources.filter((r) => r.isCompleted).map((r) => r.id),
+    [lesson]
+  );
+  const progress =
+    lesson.resources.length > 0
+      ? (completedResourcesList.length / lesson.resources.length) * 100
+      : 0;
 
   return (
     <Box>
-      {/* Header */}
       <Card
         elevation={3}
         sx={{
@@ -128,9 +83,10 @@ const LessonPage: React.FC = () => {
               label={`${lesson.resources.length} tài liệu`}
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
             />
+            {/* ✨ CHANGED: Dùng 'completedResourcesList' */}
             <Chip
               icon={<CheckCircleIcon />}
-              label={`${completedResources.length}/${lesson.resources.length} hoàn thành`}
+              label={`${completedResourcesList.length}/${lesson.resources.length} hoàn thành`}
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
             />
             <Box sx={{ flexGrow: 1, minWidth: 200 }}>
@@ -146,7 +102,7 @@ const LessonPage: React.FC = () => {
                 >
                   <Box
                     sx={{
-                      width: `${progress}%`,
+                      width: `${progress}%`, 
                       height: '100%',
                       bgcolor: 'white',
                       transition: 'width 0.3s ease',
@@ -172,27 +128,26 @@ const LessonPage: React.FC = () => {
       >
         {/* Main Content */}
         <Box sx={{ width: { xs: '100%', md: '70%' } }}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+          <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 3 }, borderRadius: 3 }}>
             <ResourcePlayer
               resource={selectedResource}
               isCompleted={
-                selectedResource ? completedResources.includes(selectedResource.id) : false
+                selectedResource?.isCompleted || false
               }
               onComplete={handleResourceComplete}
+              isMarkingComplete={isMarkingComplete} 
             />
           </Paper>
         </Box>
 
-        {/* Sidebar */}
         <Box sx={{ width: { xs: '100%', md: '30%' } }}>
           <ResourceSidebar
             resources={lesson.resources}
             selectedResource={selectedResource}
-            completedResources={completedResources}
+            completedResources={completedResourcesList} 
             onSelectResource={setSelectedResource}
           />
 
-          {/* Quick Action */}
           <Paper elevation={2} sx={{ mt: 2, p: 2, borderRadius: 3, textAlign: 'center' }}>
             <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
               Đã hoàn thành bài học?
@@ -202,6 +157,7 @@ const LessonPage: React.FC = () => {
               fullWidth
               startIcon={<PlayArrowIcon />}
               sx={{ mt: 1, borderRadius: 2, py: 1.2 }}
+              disabled={progress < 100}
             >
               Làm bài kiểm tra
             </Button>

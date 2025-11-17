@@ -44,6 +44,7 @@ export interface IResource {
   type: 'video' | 'pdf' | 'document' | 'link';
   url: string;
   description?: string;
+  isCompleted?: boolean;
 }
 
 export interface IResourceResponse {

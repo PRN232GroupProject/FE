@@ -32,8 +32,7 @@ export const mapResourceResponse = (
   type: (response.resourceType as any) || 'document',
   url: response.resourceUrl || '',
   description: response.resourceDescription,
-  // Thêm trạng thái hoàn thành (nếu có)
-  // isCompleted: response.isCompleted || false, 
+  isCompleted: response.isCompleted || false, 
 });
 
 export const mapLessonDetailResponse = (

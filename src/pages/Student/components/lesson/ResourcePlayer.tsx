@@ -7,9 +7,10 @@ interface ResourcePlayerProps {
   resource: IResource | null;
   isCompleted: boolean;
   onComplete: (resourceId: number) => void;
+  isMarkingComplete: boolean;
 }
 
-const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, onComplete }) => {
+const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, onComplete, isMarkingComplete }) => {
   if (!resource) {
     return (
       <Box
@@ -58,8 +59,8 @@ const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, 
           {isCompleted ? (
             <Chip icon={<CheckCircleIcon />} label="Đã hoàn thành" color="success" size="small" />
           ) : (
-            <Button variant="outlined" size="small" onClick={() => onComplete(resource.id)}>
-              Đánh dấu hoàn thành
+            <Button variant="outlined" size="small" onClick={() => onComplete(resource.id)} disabled={isMarkingComplete}>
+              {isMarkingComplete ? 'Đang lưu...' : 'Đánh dấu hoàn thành'}
             </Button>
           )}
         </Box>
@@ -95,9 +96,9 @@ const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, 
             variant="contained"
             size="small"
             onClick={() => onComplete(resource.id)}
-            disabled={isCompleted}
+            disabled={isCompleted || isMarkingComplete}
           >
-            {isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
+            {isCompleted ? 'Đã hoàn thành' : (isMarkingComplete ? 'Đang lưu...' : 'Đánh dấu hoàn thành')}
           </Button>
         </Box>
       </Box>
