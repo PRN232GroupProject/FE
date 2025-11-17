@@ -24,7 +24,15 @@ interface ChapterCardProps {
   progress: number;
 }
 
-const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, completedLessons, progress }) => {
+const ChapterCard: React.FC<ChapterCardProps> = ({
+  chapter,
+  completedLessons,
+  progress,
+}) => {
+  // 🚀 NEW: Lấy ID bài học đầu tiên một cách an toàn
+  // Nếu mảng 'lessons' rỗng, 'firstLessonId' sẽ là 'undefined'
+  const firstLessonId = chapter.lessons[0]?.id;
+
   return (
     <Card
       elevation={3}
@@ -106,7 +114,11 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, completedLessons, pr
           flexDirection: 'column',
         }}
       >
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 40 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 2, minHeight: 40 }}
+        >
           {chapter.description}
         </Typography>
 
@@ -131,16 +143,21 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, completedLessons, pr
               }}
             >
               {idx < completedLessons ? (
-                <CheckIcon sx={{ mr: 1.5, color: 'success.main', fontSize: 20 }} />
+                <CheckIcon
+                  sx={{ mr: 1.5, color: 'success.main', fontSize: 20 }}
+                />
               ) : (
-                <PlayIcon sx={{ mr: 1.5, color: 'text.secondary', fontSize: 20 }} />
+                <PlayIcon
+                  sx={{ mr: 1.5, color: 'text.secondary', fontSize: 20 }}
+                />
               )}
               <Typography
                 variant="body2"
                 sx={{
                   flexGrow: 1,
                   fontWeight: idx < completedLessons ? 600 : 400,
-                  color: idx < completedLessons ? 'text.primary' : 'text.secondary',
+                  color:
+                    idx < completedLessons ? 'text.primary' : 'text.secondary',
                 }}
               >
                 {lesson.title}
@@ -152,10 +169,13 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, completedLessons, pr
         {/* Action Button */}
         <Button
           component={RouterLink}
-          to={`/lesson/${chapter.lessons[0].id}`}
+          // ✨ CHANGED: Dùng 'firstLessonId' làm link, fallback về '#' nếu không có
+          to={firstLessonId ? `/lesson/${firstLessonId}` : '#'}
           variant="contained"
           fullWidth
           startIcon={<PlayIcon />}
+          // ✨ CHANGED: Vô hiệu hóa nút nếu không có 'firstLessonId'
+          disabled={!firstLessonId}
           sx={{
             mt: 'auto',
             borderRadius: 2,
@@ -163,7 +183,8 @@ const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, completedLessons, pr
             fontWeight: 600,
           }}
         >
-          Bắt đầu học
+          {/* ✨ CHANGED: Đổi text nếu không có bài học */}
+          {firstLessonId ? 'Bắt đầu học' : 'Chưa có bài học'}
         </Button>
       </CardContent>
     </Card>

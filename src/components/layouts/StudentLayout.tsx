@@ -18,14 +18,14 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  useMediaQuery, 
+  useMediaQuery,
   useTheme,
-  Chip, 
+  Chip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Person as PersonIcon, 
-  Logout as LogoutIcon, 
+  Person as PersonIcon,
+  Logout as LogoutIcon,
   Home as HomeIcon,
   School as SchoolIcon,
   Quiz as QuizIcon,
@@ -39,11 +39,11 @@ const StudentLayout: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme(); 
-  const isMobile = useMediaQuery(theme.breakpoints.down('md')); 
-  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false); 
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -59,7 +59,7 @@ const StudentLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const handleProfileClick = () => { 
+  const handleProfileClick = () => {
     handleProfileMenuClose();
     navigate('/profile');
   };
@@ -70,26 +70,28 @@ const StudentLayout: React.FC = () => {
     { text: 'Bài kiểm tra', icon: <QuizIcon />, path: '/tests' },
     { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/resources' },
   ];
-  
+
   if (isAuthenticated) {
-    menuItems.splice(3, 0, { text: 'Kết quả', icon: <AssessmentIcon />, path: '/results' });
+    menuItems.splice(3, 0, {
+      text: 'Kết quả',
+      icon: <AssessmentIcon />,
+      path: '/results',
+    });
   }
 
-  const drawer = ( 
+  const drawer = (
     <Box sx={{ width: 250 }}>
       <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
           Học Hóa học
         </Typography>
-        <Typography variant="caption">
-          Nền tảng học tập trực tuyến
-        </Typography>
+        <Typography variant="caption">Nền tảng học tập trực tuyến</Typography>
       </Box>
-      <Divider /> 
+      <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding> 
-            <ListItemButton 
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => {
                 navigate(item.path);
@@ -105,10 +107,14 @@ const StudentLayout: React.FC = () => {
                 },
               }}
             >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? 'white' : 'inherit' }}> 
+              <ListItemIcon
+                sx={{
+                  color: location.pathname === item.path ? 'white' : 'inherit',
+                }}
+              >
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} /> 
+              <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -119,7 +125,7 @@ const StudentLayout: React.FC = () => {
   const getInitials = (name: string) => {
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -129,7 +135,7 @@ const StudentLayout: React.FC = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="sticky" elevation={2}>
         <Toolbar>
-          {isMobile && ( 
+          {isMobile && (
             <IconButton
               color="inherit"
               edge="start"
@@ -139,11 +145,11 @@ const StudentLayout: React.FC = () => {
               <MenuIcon />
             </IconButton>
           )}
-          
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
               cursor: 'pointer',
               flexGrow: 1,
             }}
@@ -151,10 +157,13 @@ const StudentLayout: React.FC = () => {
           >
             <SchoolIcon sx={{ mr: 1, fontSize: 32 }} />
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+              >
                 Học Hóa học
               </Typography>
-              {!isMobile && ( 
+              {!isMobile && (
                 <Typography variant="caption" sx={{ lineHeight: 1 }}>
                   Nền tảng BinBin
                 </Typography>
@@ -162,7 +171,7 @@ const StudentLayout: React.FC = () => {
             </Box>
           </Box>
 
-          {!isMobile && ( 
+          {!isMobile && (
             <Box sx={{ display: 'flex', gap: 1, mr: 3 }}>
               {menuItems.map((item) => (
                 <Button
@@ -172,7 +181,10 @@ const StudentLayout: React.FC = () => {
                   sx={{
                     borderRadius: 2,
                     fontWeight: location.pathname === item.path ? 700 : 400,
-                    bgcolor: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : 'transparent',
+                    bgcolor:
+                      location.pathname === item.path
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'transparent',
                     '&:hover': {
                       bgcolor: 'rgba(255,255,255,0.2)',
                     },
@@ -186,11 +198,16 @@ const StudentLayout: React.FC = () => {
 
           {isAuthenticated && user ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>
+              <Box
+                sx={{
+                  textAlign: 'right',
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              >
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {user.fullName}
                 </Typography>
-                <Chip 
+                <Chip
                   label="Học sinh"
                   size="small"
                   sx={{
@@ -223,14 +240,13 @@ const StudentLayout: React.FC = () => {
                 bgcolor: 'white',
                 color: 'primary.main',
                 '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.9)'
-                }
+                  bgcolor: 'rgba(255,255,255,0.9)',
+                },
               }}
             >
               Đăng nhập
             </Button>
           )}
-
         </Toolbar>
       </AppBar>
 
@@ -255,13 +271,13 @@ const StudentLayout: React.FC = () => {
               {user?.email}
             </Typography>
           </Box>
-          <Divider /> 
-          <MenuItem onClick={handleProfileClick}> 
-            <PersonIcon sx={{ mr: 1 }} fontSize="small" /> 
+          <Divider />
+          <MenuItem onClick={handleProfileClick}>
+            <PersonIcon sx={{ mr: 1 }} fontSize="small" />
             Thông tin cá nhân
           </MenuItem>
           <MenuItem onClick={handleLogout}>
-            <LogoutIcon sx={{ mr: 1 }} fontSize="small" /> 
+            <LogoutIcon sx={{ mr: 1 }} fontSize="small" />
             Đăng xuất
           </MenuItem>
         </Menu>
@@ -269,22 +285,26 @@ const StudentLayout: React.FC = () => {
 
       <Drawer
         anchor="left"
-        open={drawerOpen} 
+        open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
       >
-        {drawer} 
+        {drawer}
       </Drawer>
 
-      <Container 
-        maxWidth="xl" 
-        sx={{ 
-          flexGrow: 1, 
-          py: 4,
-          bgcolor: 'background.default',
+      {/* 🚀🚀🚀 PHẦN SỬA Ở ĐÂY 🚀🚀🚀 */}
+      <Box
+        component="main" // Dùng thẻ <main> cho ngữ nghĩa
+        sx={{
+          flexGrow: 1, // Để nó lấp đầy không gian
+          py: 4, // Chuyển padding ra đây
+          bgcolor: 'background.default', // Chuyển màu nền ra đây
         }}
       >
-        <Outlet />
-      </Container>
+        <Container maxWidth="xl"> {/* Container giờ chỉ lo căn giữa */}
+          <Outlet />
+        </Container>
+      </Box>
+      {/* 🚀🚀🚀 HẾT PHẦN SỬA 🚀🚀🚀 */}
 
       <Box
         component="footer"
@@ -298,18 +318,37 @@ const StudentLayout: React.FC = () => {
         }}
       >
         <Container maxWidth="xl">
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               © 2025 Nền tảng Học Hóa học BinBin. All rights reserved.
             </Typography>
             <Box sx={{ display: 'flex', gap: 3 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
+              >
                 Về chúng tôi
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
+              >
                 Liên hệ
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
+              >
                 Điều khoản
               </Typography>
             </Box>
