@@ -1,12 +1,15 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import StudentLayout from './components/layouts/StudentLayout';
+import StaffLayout from './components/layouts/StaffLayout';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import HomePage from './pages/Student/HomePage';
 import ProfilePage from './pages/Student/ProfilePage';
-import { useAuthStore } from './stores/authStore';
+import ContentManagementPage from './pages/Staff/ContentManagementPage';
+import ResourceManagementPage from './pages/Staff/ResourceManagementPage';
+import DashboardPage from './pages/Staff/DashboardPage';
 
 // Lazy load các pages khác
 const LessonListPage = React.lazy(() => import('./pages/Student/LessonListPage'));
@@ -18,8 +21,6 @@ const ResourcesPage = React.lazy(() => import('./pages/Student/ResourcesPage'));
 const StudentResultsPage = React.lazy(() => import('./pages/Student/StudentResultsPage'));
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
-
   return (
     <React.Suspense fallback={<div>Loading...</div>}>
       <Routes>
@@ -33,14 +34,8 @@ const App: React.FC = () => {
         </Route>
 
         {/* Auth routes */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
-        />
-        <Route
-          path="/register"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />}
-        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected student routes */}
         <Route element={<ProtectedRoute allowedRoles={['student']} />}>
@@ -49,6 +44,15 @@ const App: React.FC = () => {
             <Route path="/results" element={<StudentResultsPage />} />
             <Route path="/test/:testId" element={<TestSessionPage />} />
             <Route path="/sessions/:sessionId/results" element={<TestResultPage />} />
+          </Route>
+        </Route>
+
+        {/* Protected staff routes */}
+        <Route element={<ProtectedRoute allowedRoles={['staff']} />}>
+          <Route element={<StaffLayout />}>
+            <Route path="/staff/dashboard" element={<DashboardPage />} />
+            <Route path="/staff/content" element={<ContentManagementPage />} />
+            <Route path="/staff/resources" element={<ResourceManagementPage />} />
           </Route>
         </Route>
 

@@ -3,9 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
 import { authService } from '../../services/features/auth.service';
-import { getUserFromToken } from '../../utils/jwt.utils';
 import {
   TextField,
   Button,
@@ -39,7 +37,6 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const loginToStore = useAuthStore((state) => state.loginToStore);
 
   const {
     register,
@@ -55,7 +52,7 @@ const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      // 1. Login và lấy token + role
+      // Login and get token + role
       const loginResponse = await authService.login({
         email: data.email,
         password: data.password,
@@ -63,31 +60,15 @@ const LoginPage: React.FC = () => {
 
       console.log('Login successful:', loginResponse);
 
-      const { token, role } = loginResponse.data;
+      const { role } = loginResponse.data;
 
-      // 2. Decode JWT token để lấy user info
-      const userFromToken = getUserFromToken(token);
-      
-      if (!userFromToken) {
-        throw new Error('Invalid token');
-      }
-
-      // 3. Override role from login response (more reliable)
-      const user = {
-        ...userFromToken,
-        role: role, // Use role from login response
-      };
-
-      console.log('User info from token:', user);
-
-      // 4. Lưu vào store
-      loginToStore(token, user);
-
-      // 5. Navigate dựa trên role
+      // Navigate based on role
       if (role.toLowerCase() === 'student') {
         navigate('/');
-      } else {
+      } else if (role.toLowerCase() === 'admin') {
         navigate('/admin/questions');
+      } else {
+        navigate('/staff/dashboard');
       }
 
     } catch (err: any) {

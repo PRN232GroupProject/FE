@@ -55,6 +55,8 @@ export const authService = {
     }
   },
 
+  
+
   async logout(): Promise<void> {
     try {
       localStorage.removeItem('token');

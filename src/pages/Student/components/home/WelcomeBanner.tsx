@@ -3,11 +3,12 @@ import { Box, Typography, Chip, Stack, alpha } from '@mui/material';
 import { School as SchoolIcon, MenuBook as BookIcon } from '@mui/icons-material';
 
 interface WelcomeBannerProps {
+  userName: string;
   totalChapters: number;
   totalLessons: number;
 }
 
-const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ totalChapters, totalLessons }) => {
+const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ userName, totalChapters, totalLessons }) => {
   return (
     <Box
       sx={{
@@ -25,7 +26,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ totalChapters, totalLesso
     >
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
-          Chào mừng đến với khóa học Hóa học!
+          Chào {userName}, chào mừng đến với khóa học Hóa học!
         </Typography>
         <Typography variant="h6" sx={{ mb: 3, opacity: 0.95 }}>
           Khám phá thế giới hóa học thông qua các bài giảng video và tài liệu chuyên sâu

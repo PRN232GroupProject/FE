@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuthStore } from '../../stores/authStore';
 import { Box, Alert } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -25,7 +24,6 @@ const profileSchema = z.object({
 });
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +41,7 @@ const ProfilePage: React.FC = () => {
     data: historyData,
     isLoading: isLoadingHistory,
     isError: isErrorHistory,
-  } = useTestHistory(user?.id || 0);
+  } = useTestHistory(currentUser?.id || 0);
 
   // Hook cập nhật thông tin
   const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateProfile();

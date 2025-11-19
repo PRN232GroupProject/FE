@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // ✨ CHANGED: Thêm useMemo
+import React, { useState, useMemo, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
@@ -7,17 +7,36 @@ import WelcomeBanner from './components/home/WelcomeBanner';
 import GradeFilterTabs from './components/home/GradeFilterTabs';
 import SearchBar from './components/home/SearchBar';
 import ChapterCard from './components/home/ChapterCard';
-import { useChapters } from '../../hooks/useContent'; // 🚀 NEW: Import hook
+import { useChapters } from '../../hooks/useContent';
+import { userService } from '../../services/features/user.service';
+import type { IUser } from '../../types/user.types';
 
 const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('all');
+  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
 
   const {
-    data: allChapters, // Dữ liệu gốc
-    isLoading, // Trạng thái tải
-    isError, // Trạng thái lỗi
+    data: allChapters,
+    isLoading,
+    isError,
   } = useChapters();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await userService.getCurrentUser();
+        setCurrentUser(response.data);
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   // ⛔️ Bỏ: Toàn bộ khối useEffect fetchChapters
 
@@ -41,7 +60,7 @@ const HomePage: React.FC = () => {
   }, [allChapters, selectedGrade, searchTerm]);
 
   // ✨ CHANGED: Xử lý trạng thái Loading
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return <LoadingSpinner />;
   }
 
@@ -66,6 +85,7 @@ const HomePage: React.FC = () => {
   return (
     <Box>
       <WelcomeBanner
+        userName={currentUser?.fullName || 'Bạn'}
         totalChapters={totalChapters}
         totalLessons={totalLessons}
       />

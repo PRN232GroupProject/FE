@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
@@ -9,17 +9,30 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import PageHeader from '../../components/shared/PageHeader';
 import ResultStatsCard from './components/results/ResultStatsCard';
 import ResultsTable from './components/results/ResultsTable';
-import { useAuthStore } from '../../stores/authStore'; 
 import { useTestHistory } from '../../hooks/useTestData'; 
+import { userService } from '../../services/features/user.service';
 import EmptyState from '../../components/shared/EmptyState';
 
 const StudentResultsPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const [userId, setUserId] = useState<number>(0);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await userService.getCurrentUser();
+        setUserId(response.data.id);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+  
   const {
     data: historyData,
     isLoading,
     isError,
-  } = useTestHistory(user?.id || 0);
+  } = useTestHistory(userId);
 
   if (isLoading) {
     return <LoadingSpinner />;

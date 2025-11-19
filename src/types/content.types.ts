@@ -38,6 +38,19 @@ export interface IChapterResponse {
   lessons: ILessonResponse[];
 }
 
+export interface ICreateChapterRequest {
+  chapterName: string;
+  grade: number;
+  description?: string;
+}
+
+export interface IUpdateChapterRequest {
+  id: number;
+  chapterName: string;
+  grade: number;
+  description?: string;
+}
+
 export interface IResource {
   id: number;
   title: string;
@@ -46,6 +59,14 @@ export interface IResource {
   description?: string;
   isCompleted?: boolean;
   lessonId: number;
+}
+
+export interface IResourceRequest {
+  lessonId: number;
+  resourceTitle: string;
+  resourceType: 'video' | 'pdf' | 'document' | 'link';
+  resourceUrl: string;
+  resourceDescription?: string;
 }
 
 export interface IResourceResponse {

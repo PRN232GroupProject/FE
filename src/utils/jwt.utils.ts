@@ -21,24 +21,6 @@ export const decodeJWT = (token: string): any => {
 };
 
 /**
- * Map Role ID to Role Name
- */
-const getRoleNameFromId = (roleId: string | number): string => {
-  const id = typeof roleId === 'string' ? parseInt(roleId) : roleId;
-  
-  switch (id) {
-    case 1:
-      return 'Staff';
-    case 2:
-      return 'Admin';
-    case 3:
-      return 'Student';
-    default:
-      return 'Student';
-  }
-};
-
-/**
  * Get user info from JWT token
  * @param token JWT token string
  * @returns User info object
@@ -60,11 +42,6 @@ export const getUserFromToken = (token: string) => {
     '3'; // Default to Student
 
   console.log('📌 Role claim:', roleClaim);
-
-  // Convert role ID to role name if needed
-  const roleName = getRoleNameFromId(roleClaim);
-
-  console.log('✅ Final role name:', roleName);
 
   // Try different possible claim names for user ID
   const userId = 
@@ -97,7 +74,7 @@ export const getUserFromToken = (token: string) => {
     id: parseInt(userId.toString()),
     email: email.toString(),
     fullName: fullName.toString(),
-    role: roleName,
+    role: roleClaim,
     isActive: true,
     createdAt: new Date().toISOString(),
   };

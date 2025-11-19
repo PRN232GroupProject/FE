@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -33,14 +33,31 @@ import {
   LibraryBooks as LibraryBooksIcon,
   Login as LoginIcon,
 } from '@mui/icons-material';
-import { useAuthStore } from '../../stores/authStore';
+import { authService } from '../../services/features/auth.service';
+import { userService } from '../../services/features/user.service';
+import type { IUser } from '../../types/user.types';
 
 const StudentLayout: React.FC = () => {
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const [user, setUser] = useState<IUser | null>(null);
+  const isAuthenticated = authService.isAuthenticated();
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUser = async () => {
+        try {
+          const response = await userService.getCurrentUser();
+          setUser(response.data);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        }
+      };
+      fetchUser();
+    }
+  }, [isAuthenticated]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -53,9 +70,9 @@ const StudentLayout: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     handleProfileMenuClose();
-    logout();
+    await authService.logout();
     navigate('/login');
   };
 
@@ -71,13 +88,19 @@ const StudentLayout: React.FC = () => {
     { text: 'Tài liệu', icon: <LibraryBooksIcon />, path: '/resources' },
   ];
 
-  if (isAuthenticated) {
+  if (isAuthenticated && user?.role === 'Student') {
     menuItems.splice(3, 0, {
       text: 'Kết quả',
       icon: <AssessmentIcon />,
       path: '/results',
     });
   }
+
+  // Only show navigation if user is a student or not authenticated
+  const showNavigation = !isAuthenticated || user?.role === 'Student';
+  
+  // Show staff portal link for staff/admin users
+  const showStaffPortalLink = isAuthenticated && user && (user.role === 'Staff' || user.role === 'Admin');
 
   const drawer = (
     <Box sx={{ width: 250 }}>
@@ -88,37 +111,39 @@ const StudentLayout: React.FC = () => {
         <Typography variant="caption">Nền tảng học tập trực tuyến</Typography>
       </Box>
       <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                setDrawerOpen(false);
-              }}
-              sx={{
-                '&.Mui-selected': {
-                  bgcolor: 'primary.light',
-                  color: 'white',
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                  },
-                },
-              }}
-            >
-              <ListItemIcon
+      {showNavigation && (
+        <List>
+          {menuItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                selected={location.pathname === item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setDrawerOpen(false);
+                }}
                 sx={{
-                  color: location.pathname === item.path ? 'white' : 'inherit',
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.light',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: 'primary.main',
+                    },
+                  },
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+                <ListItemIcon
+                  sx={{
+                    color: location.pathname === item.path ? 'white' : 'inherit',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
     </Box>
   );
 
@@ -171,7 +196,7 @@ const StudentLayout: React.FC = () => {
             </Box>
           </Box>
 
-          {!isMobile && (
+          {!isMobile && showNavigation && (
             <Box sx={{ display: 'flex', gap: 1, mr: 3 }}>
               {menuItems.map((item) => (
                 <Button
@@ -196,6 +221,25 @@ const StudentLayout: React.FC = () => {
             </Box>
           )}
 
+          {!isMobile && showStaffPortalLink && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => navigate('/staff/dashboard')}
+              sx={{
+                mr: 3,
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.3)',
+                },
+              }}
+            >
+              Về Staff Portal
+            </Button>
+          )}
+
           {isAuthenticated && user ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box
@@ -208,7 +252,7 @@ const StudentLayout: React.FC = () => {
                   {user.fullName}
                 </Typography>
                 <Chip
-                  label="Học sinh"
+                  label={user.role === 'Admin' ? 'Quản trị viên' : user.role === 'Staff' ? 'Quản trị viên' : 'Học sinh'}
                   size="small"
                   sx={{
                     bgcolor: 'rgba(255,255,255,0.2)',

@@ -5,7 +5,7 @@ import TestHeader from '../Student/components/test/TestHeader';
 import QuestionCard from '../Student/components/test/QuestionCard';
 import SubmitFooter from '../Student/components/test/SubmitFooter';
 import ConfirmSubmitDialog from '../Student/components/test/ConfirmSubmitDialog';
-import { useAuthStore } from '../../stores/authStore';
+import { userService } from '../../services/features/user.service';
 import {
   useStartTestSession,
   useSubmitAnswer,
@@ -15,7 +15,19 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 
 const TestSessionPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
-  const { user } = useAuthStore();
+  const [userId, setUserId] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await userService.getCurrentUser();
+        setUserId(response.data.id);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -32,15 +44,15 @@ const TestSessionPage: React.FC = () => {
   const { mutate: submitTest, isPending: isSubmitting } = useSubmitTest();
 
   useEffect(() => {
-    if (testId && user?.id) {
+    if (testId && userId) {
       startTest({
-        userId: user.id,
+        userId: userId,
         testId: Number(testId),
         startTime: new Date().toISOString(),
         status: 'in_progress',
       });
     }
-  }, [testId, user, startTest]);
+  }, [testId, userId, startTest]);
 
   useEffect(() => {
     if (sessionData?.data.questions) {
