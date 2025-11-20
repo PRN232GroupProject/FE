@@ -10,7 +10,6 @@ import { calculateTestHistory } from '../utils/historyUtils';
 export const TEST_QUERY_KEY = 'tests';
 export const RESULT_QUERY_KEY = 'results';
 
-// 1. Hook cho danh sách bài thi
 export const useTestList = (filters?: ITestFilterParams) => {
   return useQuery({
     queryKey: [TEST_QUERY_KEY, 'list', filters],
@@ -21,44 +20,39 @@ export const useTestList = (filters?: ITestFilterParams) => {
   });
 };
 
-// 2. Hook cho trang Kết quả (SỬA LOGIC AN TOÀN & TỰ CHẤM)
 export const useTestResult = (sessionId: number) => {
   return useQuery<ITestResult>({
     queryKey: [RESULT_QUERY_KEY, 'detail', sessionId],
     queryFn: async () => {
-      console.log("🚀 [FE] Bắt đầu lấy kết quả session:", sessionId);
-
-      // 1. Gọi API lấy Session (Đáp án HS)
       const sessionRes = await resultService.getSessionAnswers(sessionId);
       const sessionData = sessionRes.data;
       
-      if (!sessionData) throw new Error("Không lấy được dữ liệu bài làm");
+      if (!sessionData) throw new Error("No session data found");
 
-      // 2. Gọi API lấy Đề thi (Câu hỏi gốc)
       const testRes = await testService.getTestById(sessionData.testId);
       const testData = testRes.data;
 
-      // 3. Xử lý danh sách đáp án (Chống crash do lệch tên trường)
-      // .NET thường trả về 'answers' (camelCase của Answers)
-      const rawAnswers = (sessionData as any).answers || (sessionData as any).studentAnswers || [];
+      const rawSession = sessionData as any;
+      const rawAnswers = rawSession.answers || rawSession.Answers || rawSession.studentAnswers || rawSession.StudentAnswers || [];
 
-      // 4. Gộp và Tự chấm điểm
       let correctCount = 0;
-      
       const questionsList = testData.questions || [];
 
       const mergedAnswers: ITestAnswerDetail[] = questionsList.map((question: IQuestionResponse) => {
-        // Tìm đáp án HS chọn cho câu này
-        const studentAns = rawAnswers.find((a: any) => a.questionId === question.id);
+        const studentAns = rawAnswers.find((a: any) => {
+            const aId = a.questionId || a.QuestionId;
+            const qId = question.id || (question as any).Id;
+            return Number(aId) === Number(qId);
+        });
+
+        const selected = String(studentAns?.selectedAnswer || studentAns?.SelectedAnswer || '').trim();
+        const correct = String(question.correctAnswer || (question as any).CorrectAnswer || '').trim();
         
-        // Lấy giá trị (xử lý an toàn)
-        const selected = studentAns?.selectedAnswer || '';
-        const correct = question.correctAnswer || '';
+        const isCorrectFE = selected.toLowerCase() === correct.toLowerCase() && selected !== '';
         
-        // Logic chấm điểm FE (Bỏ qua hoa thường, khoảng trắng)
-        const isCorrectFE = selected.trim().toLowerCase() === correct.trim().toLowerCase();
-        
-        if (isCorrectFE) correctCount++;
+        if (isCorrectFE) {
+          correctCount++;
+        }
 
         return {
           questionId: question.id,
@@ -66,16 +60,13 @@ export const useTestResult = (sessionId: number) => {
           options: question.options || {},
           selectedAnswer: selected,
           correctAnswer: correct,
-          isCorrect: isCorrectFE, // Dùng kết quả FE tự tính
+          isCorrect: isCorrectFE,
           explanation: question.explanation || '',
         };
       });
 
-      // 5. Tính điểm thang 10
       const totalQ = questionsList.length;
       const finalScore = totalQ > 0 ? (correctCount / totalQ) * 10 : 0;
-
-      console.log(`✅ [FE] Kết quả tính toán: ${correctCount}/${totalQ} đúng. Điểm: ${finalScore}`);
 
       return {
         testId: sessionData.testId,
@@ -90,25 +81,23 @@ export const useTestResult = (sessionId: number) => {
         answers: mergedAnswers,
       };
     },
-    enabled: !!sessionId, // Chỉ chạy khi có sessionId
-    retry: 1,
+    enabled: !!sessionId,
+    staleTime: Infinity,
+    retry: false,
   });
 };
 
-// 3. Hook lịch sử (Lấy từ User Profile như đã bàn)
 export const useTestHistory = (userId: number) => {
   return useQuery({
     queryKey: ['testHistory', userId],
     queryFn: async () => {
       const response = await userService.getCurrentUser();
-      // Hàm này bạn đã có trong utils/historyUtils.ts
       return calculateTestHistory(response.data.studentTestSessions);
     },
     enabled: !!userId,
   });
 };
 
-// 4. Hook chi tiết (Giữ nguyên)
 export const useTestAttempts = (userId: number, testId: number) => {
   return useQuery({
     queryKey: [RESULT_QUERY_KEY, 'attempts', userId, testId],

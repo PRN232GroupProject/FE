@@ -86,22 +86,34 @@ const TestSessionPage: React.FC = () => {
 
   // --- HÀM XỬ LÝ NỘP BÀI (QUAN TRỌNG) ---
   const handleSubmitTest = async () => {
-    if (!sessionData?.id || !userId) return;
+    if (!sessionData?.id || !userId || !testData) return;
 
     setOpenConfirm(false);
 
+    let correctCount = 0;
+    const totalQuestions = testData.questions.length;
     // BƯỚC 1: Gửi tất cả câu trả lời lên Server
     // Chúng ta dùng try-catch cho TỪNG request để nếu có lỗi 500 (do trùng) thì vẫn chạy tiếp
     try {
       const answerPromises = Object.entries(answers)
-        .filter(([_, val]) => val !== '') // Chỉ gửi câu đã chọn
+        .filter(([_, val]) => val !== '')
         .map(async ([qId, val]) => {
+          const questionId = Number(qId);
+          
+          // Tìm câu hỏi gốc để lấy đáp án đúng
+          const originalQuestion = testData.questions.find(q => q.id === questionId);
+          const correctAnswer = originalQuestion?.correctAnswer || '';
+          
+          // So sánh (Chuẩn hóa chuỗi)
+          const isCorrect = val.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+          
+          if (isCorrect) correctCount++;
           try {
             await saveAnswerAsync({
               sessionId: sessionData.id,
               questionId: Number(qId),
               selectedAnswer: val,
-              isCorrect: false,
+              isCorrect: isCorrect,
             });
           } catch (err) {
             // ⚠️ QUAN TRỌNG: Bắt lỗi ở đây và bỏ qua nó!
@@ -120,7 +132,10 @@ const TestSessionPage: React.FC = () => {
     // BƯỚC 2: Gọi API kết thúc bài thi (Sửa lỗi 400)
     // Convert startTime sang chuẩn ISO một lần nữa cho chắc chắn
     const safeStartTime = new Date(sessionData.startTime).toISOString();
-    
+    const finalScore = totalQuestions > 0 
+      ? (correctCount / totalQuestions) * 10 
+      : 0;
+
     submitTest({
       sessionId: sessionData.id,
       request: {
@@ -130,7 +145,7 @@ const TestSessionPage: React.FC = () => {
         startTime: safeStartTime, // Gửi đúng định dạng
         endTime: new Date().toISOString(),
         status: 'completed',
-        score: 0, // Gửi 0 để tránh lỗi null nếu BE yêu cầu int
+        score: finalScore, // Gửi 0 để tránh lỗi null nếu BE yêu cầu int
       },
     });
   };

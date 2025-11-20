@@ -94,7 +94,7 @@ const ResultHeader: React.FC<ResultHeaderProps> = ({
             variant="contained"
             size="large"
             startIcon={<HomeIcon />}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/results')}
             sx={{
               bgcolor: 'white',
               color: isPassed ? 'success.main' : 'error.main',
@@ -103,7 +103,7 @@ const ResultHeader: React.FC<ResultHeaderProps> = ({
               },
             }}
           >
-            Về trang chủ
+            Về lịch sử
           </Button>
           <Button
             variant="outlined"

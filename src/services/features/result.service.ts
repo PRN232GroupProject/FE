@@ -8,11 +8,6 @@ import axiosInstance from '../constant/axiosInstance';
 export const resultService = {
   sessionEndpoint: '/sessions',
   
-  /**
-   * ✅ Endpoint THẬT: GET /api/sessions/{id}/answers
-   * Back-end: TestSessionController -> GetStudentAnswers(int id)
-   * Trả về: StudentTestSessionResponse (chứa danh sách câu trả lời)
-   */
   async getSessionAnswers(
     sessionId: number
   ): Promise<ApiResponse<IStudentTestSessionResponse>> {
@@ -22,16 +17,10 @@ export const resultService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Get session answers error:', error);
       throw error;
     }
   },
 
-  /**
-   * ✅ Endpoint THẬT: GET /api/sessions/user/{userId}/test/{testId}
-   * Back-end: TestSessionController -> GetByUserAndTest
-   * Trả về: Danh sách các lần làm bài
-   */
   async getAttemptsForTest(
     userId: number,
     testId: number
@@ -42,7 +31,6 @@ export const resultService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Get attempts for test error:', error);
       throw error;
     }
   }
