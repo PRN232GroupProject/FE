@@ -72,6 +72,9 @@ export const resourceService = {
         if (data.resourceType === 'video') {
           const uploadResponse = await cloudinaryService.uploadVideo(file);
           resourceUrl = uploadResponse.data;
+        } else if (data.resourceType === 'image') {
+          const uploadResponse = await cloudinaryService.uploadImage(file);
+          resourceUrl = uploadResponse.data;
         } else if (data.resourceType === 'pdf' || data.resourceType === 'document') {
           const uploadResponse = await cloudinaryService.uploadRawFile(file);
           resourceUrl = uploadResponse.data;
@@ -117,11 +120,15 @@ export const resourceService = {
   ): Promise<ApiResponse<IResourceResponse>> {
     try {
       let resourceUrl = data.resourceUrl || '';
+      console.log(file);
 
       // If file is provided, upload it based on resource type
       if (file) {
         if (data.resourceType === 'video') {
           const uploadResponse = await cloudinaryService.uploadVideo(file);
+          resourceUrl = uploadResponse.data;
+        } else if (data.resourceType === 'image') {
+          const uploadResponse = await cloudinaryService.uploadImage(file);
           resourceUrl = uploadResponse.data;
         } else if (data.resourceType === 'pdf' || data.resourceType === 'document') {
           const uploadResponse = await cloudinaryService.uploadRawFile(file);

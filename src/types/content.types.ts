@@ -55,7 +55,7 @@ export interface IUpdateChapterRequest {
 export interface IResource {
   id: number;
   title: string;
-  type: 'video' | 'pdf' | 'document' | 'link';
+  type: 'video' | 'image' | 'pdf' | 'document' | 'link';
   url: string;
   description?: string;
   isCompleted?: boolean;
@@ -65,7 +65,7 @@ export interface IResource {
 export interface IResourceRequest {
   lessonId: number;
   resourceTitle: string;
-  resourceType: 'video' | 'pdf' | 'document' | 'link';
+  resourceType: 'video' | 'image' | 'pdf' | 'document' | 'link';
   resourceUrl: string;
   resourceDescription?: string;
 }

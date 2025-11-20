@@ -11,6 +11,8 @@ import ProfilePage from './pages/Student/ProfilePage';
 import ContentManagementPage from './pages/Staff/ContentManagementPage';
 import ResourceManagementPage from './pages/Staff/ResourceManagementPage';
 import DashboardPage from './pages/Staff/DashboardPage';
+import QuestionBankPage from './pages/Staff/QuestionBankPage';
+import TestManagementPage from './pages/Staff/TestManagementPage';
 import { authService } from './services/features/auth.service';
 import { userService } from './services/features/user.service';
 import type { IUser } from './types/user.types';
@@ -97,6 +99,8 @@ const App: React.FC = () => {
             <Route path="/staff/dashboard" element={<DashboardPage />} />
             <Route path="/staff/content" element={<ContentManagementPage />} />
             <Route path="/staff/resources" element={<ResourceManagementPage />} />
+            <Route path="/staff/questions" element={<QuestionBankPage />} />
+            <Route path="/staff/tests" element={<TestManagementPage />} />
           </Route>
         </Route>
 

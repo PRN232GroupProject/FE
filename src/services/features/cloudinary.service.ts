@@ -13,7 +13,7 @@ class CloudinaryService {
    */
   async uploadImage(file: File): Promise<ApiResponse<string>> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
 
     const response = await axiosInstance.post<ApiResponse<string>>(
       '/media/image',
@@ -36,7 +36,7 @@ class CloudinaryService {
   async uploadImages(files: File[]): Promise<ApiResponse<string[]>> {
     const formData = new FormData();
     files.forEach((file) => {
-      formData.append('files', file);
+      formData.append('images', file);
     });
 
     const response = await axiosInstance.post<ApiResponse<string[]>>(
@@ -59,7 +59,7 @@ class CloudinaryService {
    */
   async uploadVideo(file: File): Promise<ApiResponse<string>> {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('video', file);
 
     const response = await axiosInstance.post<ApiResponse<string>>(
       '/media/video',
@@ -82,7 +82,7 @@ class CloudinaryService {
   async uploadVideos(files: File[]): Promise<ApiResponse<string[]>> {
     const formData = new FormData();
     files.forEach((file) => {
-      formData.append('files', file);
+      formData.append('videos', file);
     });
 
     const response = await axiosInstance.post<ApiResponse<string[]>>(
