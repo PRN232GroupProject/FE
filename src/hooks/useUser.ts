@@ -1,37 +1,35 @@
-// src/hooks/useUser.ts
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { userService } from '../services/features/user.service';
-import { authService } from '../services/features/auth.service';
-import type { IUpdateProfileRequest } from '../types/user.types'
+import type { IUpdateProfileRequest } from '../types/user.types';
 
 export const USER_QUERY_KEY = 'currentUser';
 
-/**
- * Hook lấy thông tin user hiện tại (cho trang Profile)
- */
 export const useCurrentUser = () => {
-  const isAuthenticated = authService.isAuthenticated();
+  const token = localStorage.getItem('token');
 
-  return useQuery({
-    // 1. queryKey: Tên định danh cho cache này
+  const query = useQuery({
     queryKey: [USER_QUERY_KEY],
-
-    // 2. queryFn: Hàm gọi API
     queryFn: () => userService.getCurrentUser(),
-
-    // 3. select: Chỉ trả về `data` từ `ApiResponse`
     select: (response) => response.data,
-
-    // 4. enabled: Chỉ chạy query này khi user đã đăng nhập
-    enabled: !!isAuthenticated,
-
-    // 5. staleTime: Cache data này "mãi mãi" (Infinity)
-    // Dữ liệu user chỉ bị fetch lại khi:
-    // - User reload trang
-    // - Chúng ta chủ động invalidate (ví dụ: sau khi update profile)
+    // Chỉ fetch khi có token
+    enabled: !!token,
     staleTime: Infinity,
     gcTime: Infinity,
   });
+
+  // Nếu không có token (đã logout), ép buộc trả về undefined để UI reset
+  if (!token) {
+    return {
+      ...query,
+      data: undefined, // 👈 SỬA: Dùng undefined thay vì null để khớp type
+      isLoading: false,
+      isError: false,
+      status: 'idle',
+      fetchStatus: 'idle',
+    } as typeof query;
+  }
+
+  return query;
 };
 
 export const useUpdateProfile = () => {
@@ -42,7 +40,7 @@ export const useUpdateProfile = () => {
       userService.updateProfile(data),
 
     onSuccess: () => {
-      // Invalidate query to refetch user data
+      // Chỉ cần invalidate cache để hook useCurrentUser tự lấy lại data mới
       queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY] });
     },
   });

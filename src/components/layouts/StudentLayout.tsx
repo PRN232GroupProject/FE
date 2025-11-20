@@ -73,7 +73,7 @@ const StudentLayout: React.FC = () => {
   const handleLogout = async () => {
     handleProfileMenuClose();
     await authService.logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const handleProfileClick = () => {

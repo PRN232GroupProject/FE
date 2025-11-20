@@ -94,7 +94,7 @@ export const useTestHistory = (userId: number) => {
       const response = await userService.getCurrentUser();
       return calculateTestHistory(response.data.studentTestSessions);
     },
-    enabled: !!userId,
+    enabled: !!userId && userId > 0,
   });
 };
 
