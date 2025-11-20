@@ -46,7 +46,7 @@ const AdminLayout: React.FC = () => {
 
   const handleLogout = async () => {
     await authService.logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const drawer = (
