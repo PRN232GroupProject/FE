@@ -55,16 +55,29 @@ const LessonListPage: React.FC = () => {
         </Typography>
 
         {chapters.map((chapter, index) => {
-          const completedLessons = Math.floor(
-            Math.random() * chapter.lessons.length
-          );
-          const progress = (completedLessons / chapter.lessons.length) * 100;
+          // ✅ FIX: Tính progress từ dữ liệu thật
+          let totalLessons = chapter.lessons.length;
+          let completedCount = 0;
+
+          // Tính completed từ resources
+          chapter.lessons.forEach((lesson) => {
+            if (lesson.resources && lesson.resources.length > 0) {
+              const allCompleted = lesson.resources.every((r) => r.isCompleted);
+              if (allCompleted) {
+                completedCount++;
+              }
+            }
+          });
+
+          const progress = totalLessons > 0 
+            ? Math.round((completedCount / totalLessons) * 100)
+            : 0;
 
           return (
             <ChapterAccordion
               key={chapter.id}
               chapter={chapter}
-              completedLessons={completedLessons}
+              completedLessons={completedCount}
               progress={progress}
               defaultExpanded={index === 0} 
             />

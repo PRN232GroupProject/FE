@@ -1,7 +1,7 @@
-
 export interface ILessonInfo {
   id: number;
   title: string;
+  resources?: IResource[];
 }
 
 export interface ILessonResponse {

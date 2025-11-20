@@ -28,6 +28,7 @@ const LessonPage: React.FC = () => {
 
   const [selectedResource, setSelectedResource] = useState<IResource | null>(null);
 
+  // ✅ FIX: Tính completed resources từ dữ liệu THẬT (không fake nữa)
   const completedResourcesList = useMemo(
     () => (lesson?.resources || []).filter((r) => r.isCompleted).map((r) => r.id),
     [lesson]
@@ -35,11 +36,13 @@ const LessonPage: React.FC = () => {
 
   const totalResources = lesson?.resources?.length || 0;
 
+  // ✅ FIX: Progress tính từ dữ liệu thật, sẽ tự update khi mark complete
   const progress =
     totalResources > 0
-      ? (completedResourcesList.length / totalResources) * 100
+      ? Math.round((completedResourcesList.length / totalResources) * 100)
       : 0;
 
+  // Auto-select first resource khi load lesson
   useEffect(() => {
     if (lesson && lesson.resources.length > 0) {
       if (!selectedResource) {
@@ -48,8 +51,17 @@ const LessonPage: React.FC = () => {
     }
   }, [lesson, selectedResource]); 
 
+  // ✅ FIX: Handle mark complete với callback
   const handleResourceComplete = (resourceId: number) => {
-    markAsComplete(resourceId);
+    markAsComplete(resourceId, {
+      onSuccess: () => {
+        console.log('✅ Resource marked complete, UI will auto-update via invalidateQueries');
+        // Không cần setState gì thêm, useQuery sẽ tự refetch
+      },
+      onError: (error) => {
+        console.error('❌ Failed to mark complete:', error);
+      }
+    });
   };
 
   if (isLoading) {
@@ -62,6 +74,7 @@ const LessonPage: React.FC = () => {
 
   return (
     <Box>
+      {/* Banner Header */}
       <Card
         elevation={3}
         sx={{
@@ -86,12 +99,13 @@ const LessonPage: React.FC = () => {
               label={`${lesson.resources.length} tài liệu`}
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
             />
-            {/* ✨ CHANGED: Dùng 'completedResourcesList' */}
+            {/* ✅ HIỂN THỊ REAL-TIME PROGRESS */}
             <Chip
               icon={<CheckCircleIcon />}
               label={`${completedResourcesList.length}/${lesson.resources.length} hoàn thành`}
               sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
             />
+            {/* ✅ PROGRESS BAR REAL-TIME */}
             <Box sx={{ flexGrow: 1, minWidth: 200 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
@@ -108,12 +122,12 @@ const LessonPage: React.FC = () => {
                       width: `${progress}%`, 
                       height: '100%',
                       bgcolor: 'white',
-                      transition: 'width 0.3s ease',
+                      transition: 'width 0.5s ease', // Smooth animation
                     }}
                   />
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 45 }}>
-                  {Math.round(progress)}%
+                  {progress}%
                 </Typography>
               </Box>
             </Box>
@@ -129,13 +143,13 @@ const LessonPage: React.FC = () => {
           gap: 3,
         }}
       >
-        {/* Main Content */}
+        {/* Main Content - Video/PDF Player */}
         <Box sx={{ width: { xs: '100%', md: '70%' } }}>
           <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 3 }, borderRadius: 3 }}>
             <ResourcePlayer
               resource={selectedResource}
               isCompleted={
-                selectedResource?.isCompleted || false
+                selectedResource ? completedResourcesList.includes(selectedResource.id) : false
               }
               onComplete={handleResourceComplete}
               isMarkingComplete={isMarkingComplete} 
@@ -143,6 +157,7 @@ const LessonPage: React.FC = () => {
           </Paper>
         </Box>
 
+        {/* Sidebar - Resource List */}
         <Box sx={{ width: { xs: '100%', md: '30%' } }}>
           <ResourceSidebar
             resources={lesson.resources}
@@ -151,6 +166,7 @@ const LessonPage: React.FC = () => {
             onSelectResource={setSelectedResource}
           />
 
+          {/* Test Button */}
           <Paper elevation={2} sx={{ mt: 2, p: 2, borderRadius: 3, textAlign: 'center' }}>
             <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
               Đã hoàn thành bài học?
@@ -164,6 +180,11 @@ const LessonPage: React.FC = () => {
             >
               Làm bài kiểm tra
             </Button>
+            {progress < 100 && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Hoàn thành tất cả tài liệu để mở khóa
+              </Typography>
+            )}
           </Paper>
         </Box>
       </Box>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Box, Typography, Chip, Button } from '@mui/material';
 import { CheckCircle as CheckCircleIcon, Description as DescriptionIcon } from '@mui/icons-material';
 import type { IResource } from '../../../../types/content.types';
@@ -10,7 +10,52 @@ interface ResourcePlayerProps {
   isMarkingComplete: boolean;
 }
 
-const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, onComplete, isMarkingComplete }) => {
+const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ 
+  resource, 
+  isCompleted, 
+  onComplete, 
+  isMarkingComplete 
+}) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const autoCompleteTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ✅ Cleanup timer khi unmount hoặc resource thay đổi
+  useEffect(() => {
+    return () => {
+      if (autoCompleteTimerRef.current) {
+        clearTimeout(autoCompleteTimerRef.current);
+      }
+    };
+  }, [resource?.id]);
+
+  // ✅ Auto-complete cho video sau khi xem gần hết
+  useEffect(() => {
+    if (!resource || resource.type !== 'video' || isCompleted) return;
+
+    // Clear timer cũ nếu có
+    if (autoCompleteTimerRef.current) {
+      clearTimeout(autoCompleteTimerRef.current);
+    }
+
+    // Giả sử video trung bình dài 10 phút (600s)
+    // Auto mark complete sau 9 phút 55 giây (595s)
+    // Bạn có thể điều chỉnh thời gian này
+    const AUTO_COMPLETE_DELAY = 595000; // 9 phút 55 giây
+
+    autoCompleteTimerRef.current = setTimeout(() => {
+      if (!isCompleted && resource) {
+        console.log('Auto-completing video resource:', resource.id);
+        onComplete(resource.id);
+      }
+    }, AUTO_COMPLETE_DELAY);
+
+    return () => {
+      if (autoCompleteTimerRef.current) {
+        clearTimeout(autoCompleteTimerRef.current);
+      }
+    };
+  }, [resource, isCompleted, onComplete]);
+
   if (!resource) {
     return (
       <Box
@@ -41,8 +86,8 @@ const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, 
             overflow: 'hidden',
           }}
         >
-          {/* Using iframe for better compatibility - no ReactPlayer needed */}
           <iframe
+            ref={iframeRef}
             src={resource.url.replace('watch?v=', 'embed/')}
             title={resource.title}
             width="100%"
@@ -57,9 +102,19 @@ const ResourcePlayer: React.FC<ResourcePlayerProps> = ({ resource, isCompleted, 
             {resource.title}
           </Typography>
           {isCompleted ? (
-            <Chip icon={<CheckCircleIcon />} label="Đã hoàn thành" color="success" size="small" />
+            <Chip 
+              icon={<CheckCircleIcon />} 
+              label="Đã hoàn thành" 
+              color="success" 
+              size="small" 
+            />
           ) : (
-            <Button variant="outlined" size="small" onClick={() => onComplete(resource.id)} disabled={isMarkingComplete}>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              onClick={() => onComplete(resource.id)} 
+              disabled={isMarkingComplete}
+            >
               {isMarkingComplete ? 'Đang lưu...' : 'Đánh dấu hoàn thành'}
             </Button>
           )}

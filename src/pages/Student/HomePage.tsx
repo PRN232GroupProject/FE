@@ -38,33 +38,51 @@ const HomePage: React.FC = () => {
     fetchCurrentUser();
   }, []);
 
-  // ⛔️ Bỏ: Toàn bộ khối useEffect fetchChapters
-
-  // 🚀 NEW: Tối ưu hóa việc filter bằng useMemo
-  // Logic này sẽ chỉ chạy lại khi 1 trong 3 giá trị dependency thay đổi
+  // 🚀 Tối ưu hóa việc filter bằng useMemo
   const filteredChapters = useMemo(() => {
-    // 1. Bắt đầu với dữ liệu gốc từ hook
     const baseChapters = allChapters || [];
 
-    // 2. Lọc theo Lớp (Grade)
+    // Lọc theo Lớp (Grade)
     const gradeFilter =
       selectedGrade === 'all' ? null : parseInt(selectedGrade);
     const filteredByGrade = gradeFilter
       ? baseChapters.filter((c) => c.grade === gradeFilter)
       : baseChapters;
 
-    // 3. Lọc theo Tìm kiếm (Search)
+    // Lọc theo Tìm kiếm (Search)
     return filteredByGrade.filter((chapter) =>
       chapter.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allChapters, selectedGrade, searchTerm]);
 
-  // ✨ CHANGED: Xử lý trạng thái Loading
+  // ✅ FIX: Tính progress từ dữ liệu thật
+  const chaptersWithProgress = useMemo(() => {
+    return filteredChapters.map((chapter) => {
+      let totalLessons = chapter.lessons.length;
+      let completedCount = 0;
+
+      // ✅ Tính từ resources đã completed trong lessons
+      chapter.lessons.forEach((lesson) => {
+        if (lesson.resources && lesson.resources.length > 0) {
+          const allCompleted = lesson.resources.every((r) => r.isCompleted);
+          if (allCompleted) completedCount++;
+        }
+      });
+
+      const progress = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
+
+      return {
+        ...chapter,
+        completedLessons: completedCount,
+        progress: Math.round(progress),
+      };
+    });
+  }, [filteredChapters]);
+
   if (isLoading || userLoading) {
     return <LoadingSpinner />;
   }
 
-  // 🚀 NEW: Xử lý trạng thái Lỗi
   if (isError) {
     return (
       <EmptyState
@@ -75,7 +93,6 @@ const HomePage: React.FC = () => {
     );
   }
 
-  // ✨ CHANGED: Tính tổng từ dữ liệu gốc (allChapters)
   const totalChapters = (allChapters || []).length;
   const totalLessons = (allChapters || []).reduce(
     (acc, ch) => acc + ch.lessons.length,
@@ -106,27 +123,17 @@ const HomePage: React.FC = () => {
           lg: '1fr 1fr 1fr',
         }}
       >
-        {/* ✨ CHANGED: Map qua mảng đã filter (từ useMemo) */}
-        {filteredChapters.map((chapter) => {
-          // Ghi chú: Logic progress/completed này vẫn là tạm thời
-          // Bạn sẽ cần thay thế khi API trả về dữ liệu tiến độ
-          const completedLessons = Math.floor(
-            Math.random() * chapter.lessons.length
-          );
-          const progress = (completedLessons / chapter.lessons.length) * 100;
-
-          return (
-            <ChapterCard
-              key={chapter.id}
-              chapter={chapter}
-              completedLessons={completedLessons}
-              progress={progress}
-            />
-          );
-        })}
+        {/* ✅ Map qua chapters với progress thật */}
+        {chaptersWithProgress.map((chapter) => (
+          <ChapterCard
+            key={chapter.id}
+            chapter={chapter}
+            completedLessons={chapter.completedLessons}
+            progress={chapter.progress}
+          />
+        ))}
       </Box>
 
-      {/* ✨ CHANGED: Kiểm tra mảng đã filter (từ useMemo) */}
       {filteredChapters.length === 0 && !isLoading && (
         <EmptyState
           icon={<SearchIcon sx={{ fontSize: 80 }} />}
