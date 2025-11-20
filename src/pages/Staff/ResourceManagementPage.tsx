@@ -41,6 +41,7 @@ import {
   VideoLibrary as VideoIcon,
   Description as DocumentIcon,
   Visibility as VisibilityIcon,
+  Image as ImageIcon,
 } from '@mui/icons-material';
 import { resourceService } from '../../services/features/resource.service';
 import { lessonService } from '../../services/features/lesson.service';
@@ -48,6 +49,7 @@ import type { IResourceResponse, ILessonResponse } from '../../types/content.typ
 
 const resourceTypeOptions = [
   { value: 'video', label: 'Video', icon: <VideoIcon /> },
+  { value: 'image', label: 'Image', icon: <ImageIcon /> },
   { value: 'pdf', label: 'PDF', icon: <PdfIcon /> },
   { value: 'document', label: 'Document', icon: <DocumentIcon /> },
   { value: 'link', label: 'Link', icon: <LinkIcon /> },
@@ -56,7 +58,7 @@ const resourceTypeOptions = [
 interface ResourceFormData {
   lessonId: number;
   resourceTitle: string;
-  resourceType: 'video' | 'pdf' | 'document' | 'link';
+  resourceType: 'video' | 'image' | 'pdf' | 'document' | 'link';
   resourceUrl: string;
   resourceDescription?: string;
 }
@@ -155,6 +157,8 @@ const ResourceManagementPage: React.FC = () => {
         setResourceFormData({ ...resourceFormData, resourceType: 'pdf' });
       } else if (['mp4', 'avi', 'mov', 'wmv', 'webm'].includes(extension || '')) {
         setResourceFormData({ ...resourceFormData, resourceType: 'video' });
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(extension || '')) {
+        setResourceFormData({ ...resourceFormData, resourceType: 'image' });
       } else {
         setResourceFormData({ ...resourceFormData, resourceType: 'document' });
       }
@@ -227,6 +231,8 @@ const ResourceManagementPage: React.FC = () => {
     switch (type) {
       case 'video':
         return <VideoIcon />;
+      case 'image':
+        return <ImageIcon />;
       case 'pdf':
         return <PdfIcon />;
       case 'document':
@@ -242,6 +248,8 @@ const ResourceManagementPage: React.FC = () => {
     switch (type) {
       case 'video':
         return '#FF6C00';
+      case 'image':
+        return '#9C27B0';
       case 'pdf':
         return '#D32F2F';
       case 'document':
@@ -329,6 +337,11 @@ const ResourceManagementPage: React.FC = () => {
               <Chip
                 icon={<VideoIcon />}
                 label={`${resources.filter((r) => r.resourceType === 'video').length} Video`}
+                sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
+              />
+              <Chip
+                icon={<ImageIcon />}
+                label={`${resources.filter((r) => r.resourceType === 'image').length} Image`}
                 sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
               />
               <Chip
