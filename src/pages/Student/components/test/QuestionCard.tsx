@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ITestQuestion } from '../../../../types/test.types';
+import type { IQuestionResponse } from '../../../../types/test.types';
 import {
   Box,
   Typography,
@@ -16,7 +16,7 @@ import {
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 
 interface QuestionCardProps {
-  question: ITestQuestion;
+  question: IQuestionResponse;
   index: number;
   currentAnswer: string;
   onAnswerChange: (questionId: number, value: string) => void;

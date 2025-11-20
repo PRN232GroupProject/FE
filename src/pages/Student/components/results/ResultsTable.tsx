@@ -83,7 +83,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
                       variant="outlined"
                       size="small"
                       startIcon={<VisibilityIcon />}
-                      onClick={() => navigate(`/sessions/${row.sessionId}/results`)}
+                      onClick={() => navigate(`/test/result/${row.sessionId}`)}
                     >
                       Xem
                     </Button>

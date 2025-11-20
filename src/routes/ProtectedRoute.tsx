@@ -38,7 +38,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     return <LoadingSpinner />;
   }
 
-  // Check if user is authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }

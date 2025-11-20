@@ -1,36 +1,24 @@
-// ============================================
-// TEST TYPES
-// Mapped from Backend DTOs
-// ============================================
-
-// ============================================
-// QUESTION
-// ============================================
 export interface IQuestionResponse {
   id: number;
   lessonId?: number;
   content: string;
-  options: Record<string, string>; // { "A": "Đáp án A", "B": "Đáp án B" }
+  options: Record<string, string>;
   correctAnswer: string;
-  explanation: string; // HTML
-  difficulty: string; // 'easy' | 'medium' | 'hard'
+  explanation: string;
+  difficulty: string;
 }
 
 export interface ITestQuestion {
   id: number;
   content: string;
   options: Record<string, string>;
-  // Note: correctAnswer và explanation chỉ có ở kết quả, không trả về khi làm bài
 }
 
-// ============================================
-// TEST
-// ============================================
 export interface ITest {
   id: number;
   name: string;
-  type: string; // 'Sau bài học' | '15 phút' | '1 tiết' | 'Học kỳ' | 'Tốt nghiệp' | 'Đại học'
-  duration: number; // minutes
+  type: string;
+  duration: number;
   totalQuestions: number;
   chapterId?: number;
   chapterName?: string;
@@ -44,32 +32,23 @@ export interface ITest {
   };
 }
 
-// ============================================
-// TEST SESSION (Làm bài)
-// ============================================
-
-// Create Test Session Request
 export interface ICreateTestSessionRequest {
   userId: number;
   testId: number;
   startTime: string;
-  endTime?: string;
-  score?: number;
-  status: 'in_progress' | 'completed';
+  status: string; 
 }
 
-// Update Test Session Request
 export interface IUpdateTestSessionRequest {
   id: number;
   userId: number;
   testId: number;
   startTime: string;
-  endTime?: string;
-  score?: number;
-  status: 'in_progress' | 'completed';
+  endTime: string;
+  status: string; 
+  score: number;
 }
 
-// Test Session Response (Basic)
 export interface ITestSessionResponseBasic {
   id: number;
   userId: number;
@@ -80,7 +59,6 @@ export interface ITestSessionResponseBasic {
   status: 'in_progress' | 'completed';
 }
 
-// Student Test Session Response (with answers)
 export interface IStudentTestSessionResponse {
   sessionId: number;
   testId: number;
@@ -91,7 +69,6 @@ export interface IStudentTestSessionResponse {
   answers: IStudentAnswerResponse[];
 }
 
-// Start Test (Frontend)
 export interface IStartTestRequest {
   testId: number;
 }
@@ -99,52 +76,44 @@ export interface IStartTestRequest {
 export interface ITestSessionResponse {
   sessionId: number;
   testId: number;
-  studentId: number;
+  score?: number;
+  status: string;
   startTime: string;
   endTime?: string;
-  questions: ITestQuestion[]; // Danh sách câu hỏi của bài test
-  duration: number; // minutes
+  answers: IStudentAnswerResponse[];
 }
 
 export interface ISubmitAnswerRequest {
   sessionId: number;
   questionId: number;
-  selectedAnswer: string; // "A" | "B" | "C" | "D"
+  selectedAnswer: string;
 }
 
 export interface ISubmitTestRequest {
   sessionId: number;
 }
 
-// ============================================
-// ANSWERS
-// ============================================
-
-// Student Answer Response
 export interface IStudentAnswerResponse {
   questionId: number;
   selectedAnswer?: string;
   isCorrect: boolean;
 }
 
-// Answer Response
 export interface IAnswerResponse {
   id: number;
   sessionId: number;
   questionId: number;
-  selectedAnswer?: string;
+  selectedAnswer: string;
   isCorrect: boolean;
 }
 
-// Create Answer Request
 export interface ICreateAnswerRequest {
   sessionId: number;
   questionId: number;
-  selectedAnswer?: string;
-  isCorrect: boolean;
+  selectedAnswer: string;
+  isCorrect: boolean; 
 }
 
-// Update Answer Request
 export interface IUpdateAnswerRequest {
   id: number;
   sessionId: number;
@@ -153,17 +122,11 @@ export interface IUpdateAnswerRequest {
   isCorrect: boolean;
 }
 
-// ============================================
-// QUESTION EXPLANATION
-// ============================================
 export interface IQuestionExplanationResponse {
   questionId: number;
   explanationHtml?: string;
 }
 
-// ============================================
-// TEST RESULT (Kết quả)
-// ============================================
 export interface ITestAnswerDetail {
   questionId: number;
   content: string;
@@ -171,7 +134,7 @@ export interface ITestAnswerDetail {
   selectedAnswer: string;
   correctAnswer: string;
   isCorrect: boolean;
-  explanation: string; // HTML
+  explanation: string;
 }
 
 export interface ITestResult {
@@ -199,9 +162,6 @@ export interface ITestResultResponse {
   answers: ITestAnswerDetail[];
 }
 
-// ============================================
-// STUDENT TEST HISTORY
-// ============================================
 export interface ITestAttempt {
   sessionId: number;
   testId: number;
@@ -218,3 +178,77 @@ export interface IStudentTestsResponse {
   averageScore: number;
   highestScore: number;
 }
+
+export interface ITestSessionData {
+  id: number; 
+  userId: number;
+  testId: number;
+  startTime: string;
+  endTime?: string;
+  score?: number;
+  status: string;
+}
+
+// REQUEST DTOs
+export interface ICreateTestRequest {
+  name: string;
+  description?: string;
+  type: string;
+  durationMinutes: number;
+}
+
+export interface IUpdateTestRequest {
+  id: number;
+  name: string;
+  description?: string;
+  type: string;
+  durationMinutes: number;
+}
+
+export interface IAddQuestionsToTestRequest {
+  questionIds: number[];
+}
+
+export interface ICreateQuestionRequest {
+  lessonId?: number | null;
+  content: string;
+  options: Record<string, string>;
+  correctAnswer: string;
+  explanation?: string;
+  difficulty: string;
+}
+
+export interface IUpdateQuestionRequest {
+  id: number;
+  lessonId?: number | null;
+  content: string;
+  options: Record<string, string>;
+  correctAnswer: string;
+  explanation?: string;
+  difficulty: string;
+}
+
+export interface IQuestionResponseDto {
+  id: number;
+  lessonId?: number;
+  content: string;
+  options: Record<string, string>;
+  correctAnswer: string;
+  explanation: string;
+  difficulty: string;
+}
+
+export interface ITestResponseDto {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  durationMinutes: number;
+  createdAt: string;
+  createdBy: number;
+  totalQuestions: number; 
+  questions: IQuestionResponse[];
+}
+
+// Alias để các file cũ không bị lỗi
+export type ITestResponse = ITestResponseDto;

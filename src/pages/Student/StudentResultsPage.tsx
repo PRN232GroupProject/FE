@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box } from '@mui/material';
+import React, { useState, useMemo } from 'react';
+import { Box, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,
   Assessment as AssessmentIcon,
@@ -9,50 +9,78 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import PageHeader from '../../components/shared/PageHeader';
 import ResultStatsCard from './components/results/ResultStatsCard';
 import ResultsTable from './components/results/ResultsTable';
-import { useTestHistory } from '../../hooks/useTestData'; 
-import { userService } from '../../services/features/user.service';
+import { useAuthStore } from '../../stores/authStore'; 
+import { useTestHistory, useTestList } from '../../hooks/useTestData'; // 🚀 Thêm useTestList
 import EmptyState from '../../components/shared/EmptyState';
 
 const StudentResultsPage: React.FC = () => {
-  const [userId, setUserId] = useState<number>(0);
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await userService.getCurrentUser();
-        setUserId(response.data.id);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
-  
+  const { user } = useAuthStore();
+  const [typeFilter, setTypeFilter] = useState('all'); // State lọc loại bài thi
+
+  // 1. Lấy lịch sử (đã lọc latest trong utils)
   const {
     data: historyData,
-    isLoading,
-    isError,
-  } = useTestHistory(userId);
+    isLoading: isLoadingHistory,
+    isError: isErrorHistory,
+  } = useTestHistory(user?.id || 0);
 
-  if (isLoading) {
+  // 2. Lấy danh sách đề thi (để lấy Tên và Loại)
+  const {
+    data: allTests,
+    isLoading: isLoadingTests
+  } = useTestList();
+
+  // 3. Logic Merge và Filter
+  const processedData = useMemo(() => {
+    if (!historyData || !allTests) return historyData;
+
+    // Map: TestId -> TestInfo
+    const testMap = new Map(allTests.map(t => [t.id, t]));
+
+    // Điền thông tin (Tên, Loại) vào lịch sử
+    const enrichedTests = historyData.completedTests.map(attempt => {
+      const testInfo = testMap.get(attempt.testId);
+      return {
+        ...attempt,
+        testName: testInfo?.name || `Bài kiểm tra #${attempt.testId}`,
+        type: testInfo?.type || 'Khác', // Thêm field type để lọc
+        grade: testInfo?.grade
+      };
+    });
+
+    // Lọc theo Dropdown Type
+    const filteredTests = enrichedTests.filter(t => 
+      typeFilter === 'all' ? true : t.type === typeFilter
+    );
+
+    return {
+      ...historyData,
+      completedTests: filteredTests
+    };
+  }, [historyData, allTests, typeFilter]);
+
+
+  if (isLoadingHistory || isLoadingTests) {
     return <LoadingSpinner />;
   }
 
-  if (isError || !historyData) {
+  if (isErrorHistory || !historyData) {
     return (
       <EmptyState
-        icon={<AssessmentIcon sx={{ fontSize: 80 }} />}
         title="Lỗi tải kết quả"
-        description="Không thể tải được lịch sử làm bài của bạn. Vui lòng thử lại sau."
+        description="Không thể tải được lịch sử làm bài của bạn."
       />
     );
   }
 
+  // Dữ liệu cho dropdown filter
+  const testTypes = ['all', ...new Set(allTests?.map(t => t.type) || [])];
+
   const statsData = [
     {
       icon: CheckCircleIcon,
-      value: historyData.totalTests,
-      label: 'Bài đã làm',
+      value: historyData.totalTests, // Giữ nguyên thống kê tổng
+      label: 'Bài đã hoàn thành',
       color: 'success.main',
     },
     {
@@ -73,10 +101,9 @@ const StudentResultsPage: React.FC = () => {
     <Box>
       <PageHeader
         title="Kết quả học tập"
-        subtitle="Tổng quan về các bài kiểm tra bạn đã hoàn thành"
+        subtitle="Kết quả bài làm gần nhất của từng đề thi"
       />
 
-      {/* Stats Cards */}
       <Box
         display="grid"
         gap={2}
@@ -97,8 +124,25 @@ const StudentResultsPage: React.FC = () => {
         ))}
       </Box>
 
-      {/* Results Table */}
-      <ResultsTable results={historyData.completedTests} />
+      {/* Bộ lọc Loại bài thi */}
+      <Box sx={{ mb: 3, maxWidth: 300 }}>
+        <FormControl fullWidth size="small">
+          <InputLabel>Lọc theo loại bài thi</InputLabel>
+          <Select
+            value={typeFilter}
+            label="Lọc theo loại bài thi"
+            onChange={(e) => setTypeFilter(e.target.value)}
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            {testTypes.filter(t => t !== 'all').map(type => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* Bảng kết quả */}
+      <ResultsTable results={processedData?.completedTests || []} />
     </Box>
   );
 };
