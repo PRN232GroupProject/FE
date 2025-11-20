@@ -8,7 +8,6 @@ import {
   CircularProgress,
   Alert,
   alpha,
-  Paper,
   Stack,
   Divider,
 } from '@mui/material';
@@ -225,16 +224,16 @@ const DashboardPage: React.FC = () => {
         {statCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card
-              elevation={2}
+              elevation={0}
               sx={{
                 bgcolor: 'white',
                 border: 2,
                 borderColor: card.color,
+                borderRadius: 3,
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  transform: 'translateY(-8px)',
-                  boxShadow: 6,
-                  borderColor: card.color,
+                  transform: 'translateY(-4px)',
+                  boxShadow: 3,
                 },
               }}
             >
@@ -243,14 +242,14 @@ const DashboardPage: React.FC = () => {
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography
                       variant="body2"
                       color="text.secondary"
-                      sx={{ fontWeight: 600, mb: 1 }}
+                      sx={{ fontWeight: 500, mb: 2 }}
                     >
                       {card.title}
                     </Typography>
@@ -261,8 +260,12 @@ const DashboardPage: React.FC = () => {
                   <Box
                     sx={{
                       bgcolor: card.bgColor,
-                      borderRadius: 3,
-                      p: 2,
+                      borderRadius: '50%',
+                      width: 72,
+                      height: 72,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       color: card.color,
                     }}
                   >
@@ -277,74 +280,81 @@ const DashboardPage: React.FC = () => {
 
       {/* Resource Types Breakdown */}
       <Card
-        elevation={2}
+        elevation={0}
         sx={{
           bgcolor: 'white',
           border: 2,
           borderColor: '#FF6C00',
+          borderRadius: 3,
           mb: 4,
         }}
       >
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <TrendingUpIcon sx={{ color: '#FF6C00', mr: 1, fontSize: 28 }} />
+            <TrendingUpIcon sx={{ color: '#FF6C00', mr: 1.5, fontSize: 28 }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               Phân loại Tài nguyên
             </Typography>
           </Box>
 
-          <Grid container spacing={2}>
+          <Stack direction="row" spacing={3} sx={{ justifyContent: 'flex-start' }}>
             {resourceTypeCards.map((card, index) => (
-              <Grid item xs={6} sm={3} key={index}>
-                <Paper
-                  elevation={0}
+              <Box
+                key={index}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                }}
+              >
+                <Box
                   sx={{
-                    p: 2,
-                    bgcolor: alpha(card.color, 0.05),
-                    border: 1,
-                    borderColor: alpha(card.color, 0.2),
-                    borderRadius: 2,
-                    textAlign: 'center',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: alpha(card.color, 0.1),
-                      transform: 'scale(1.05)',
-                    },
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    bgcolor: alpha(card.color, 0.1),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: card.color,
+                    fontSize: 32,
                   }}
                 >
-                  <Box sx={{ color: card.color, mb: 1 }}>{card.icon}</Box>
-                  <Typography variant="h4" sx={{ fontWeight: 700, color: card.color, mb: 0.5 }}>
-                    {card.value}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    {card.title}
-                  </Typography>
-                </Paper>
-              </Grid>
+                  {card.icon}
+                </Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: card.color }}>
+                  {card.value}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                  {card.title}
+                </Typography>
+              </Box>
             ))}
-          </Grid>
+          </Stack>
         </CardContent>
       </Card>
 
       {/* Chapters by Grade */}
       <Card
-        elevation={2}
+        elevation={0}
         sx={{
           bgcolor: 'white',
           border: 2,
           borderColor: '#0055A5',
+          borderRadius: 3,
         }}
       >
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <SchoolIcon sx={{ color: '#0055A5', mr: 1, fontSize: 28 }} />
+            <SchoolIcon sx={{ color: '#0055A5', mr: 1.5, fontSize: 28 }} />
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               Chương theo Khối lớp
             </Typography>
           </Box>
 
-          <Stack spacing={2}>
-            {stats.chaptersByGrade.map((item) => (
+          <Stack spacing={2.5}>
+            {stats.chaptersByGrade.map((item, index) => (
               <Box key={item.grade}>
                 <Box
                   sx={{
@@ -375,12 +385,11 @@ const DashboardPage: React.FC = () => {
                       bgcolor: '#0055A5',
                       width: `${(item.count / stats.totalChapters) * 100}%`,
                       transition: 'width 0.5s ease',
+                      borderRadius: 1,
                     }}
                   />
                 </Box>
-                {item.grade !== stats.chaptersByGrade[stats.chaptersByGrade.length - 1].grade && (
-                  <Divider sx={{ mt: 2 }} />
-                )}
+                {index !== stats.chaptersByGrade.length - 1 && <Divider sx={{ mt: 2.5 }} />}
               </Box>
             ))}
           </Stack>

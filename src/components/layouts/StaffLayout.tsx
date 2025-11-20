@@ -31,6 +31,8 @@ import {
   MenuBook as MenuBookIcon,
   Home as HomeIcon,
   Folder as FolderIcon,
+  Quiz as QuizIcon,
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { authService } from '../../services/features/auth.service';
 import { userService } from '../../services/features/user.service';
@@ -78,6 +80,8 @@ const StaffLayout: React.FC = () => {
     { text: 'Trang chủ', icon: <HomeIcon />, path: '/' },
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/staff/dashboard' },
     { text: 'Quản lý Chương & Bài học', icon: <MenuBookIcon />, path: '/staff/content' },
+    { text: 'Ngân hàng Câu hỏi', icon: <QuizIcon />, path: '/staff/questions' },
+    { text: 'Quản lý Bài Test', icon: <AssignmentIcon />, path: '/staff/tests' },
     { text: 'Quản lý Tài nguyên', icon: <FolderIcon />, path: '/staff/resources' },
   ];
 
@@ -214,7 +218,7 @@ const StaffLayout: React.FC = () => {
         }}
       >
         <Typography variant="body2" color="text.secondary" align="center">
-          © 2025 Chemistry Learning Platform - Staff Portal
+          © 2025 Học Hóa học cùng Binbin - Staff Portal
         </Typography>
       </Box>
     </Box>
