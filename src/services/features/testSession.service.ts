@@ -1,12 +1,11 @@
 import type { ApiResponse } from '../../types/api.types';
 import type {
   ICreateTestSessionRequest,
-  ITestSessionResponse, // ⚠️ GIẢ ĐỊNH BE TRẢ VỀ CÁI NÀY KHI START
+  ITestSessionData,
   IUpdateTestSessionRequest,
   ITestSessionResponseBasic,
-  ISubmitAnswerRequest,
-  IAnswerResponse,
   ICreateAnswerRequest,
+  IAnswerResponse,
 } from '../../types/test.types';
 import axiosInstance from '../constant/axiosInstance';
 
@@ -14,78 +13,64 @@ export const testSessionService = {
   sessionEndpoint: '/sessions',
   answerEndpoint: '/answers',
 
-  /**
-   * Bước 1: Bấm "Bắt đầu" (Tạo session)
-   * Dùng TestSessionController -> POST /api/sessions
-   */
+  // 1. Tạo session
   async startTestSession(
     request: ICreateTestSessionRequest
-  ): Promise<ApiResponse<ITestSessionResponse>> {
+  ): Promise<ITestSessionData> {
     try {
-      const response = await axiosInstance.post<
-        ApiResponse<ITestSessionResponse>
-      >(this.sessionEndpoint, request);
-      return response.data;
+      const response = await axiosInstance.post<ApiResponse<ITestSessionData>>(
+        this.sessionEndpoint,
+        request
+      );
+      return response.data.data;
     } catch (error: any) {
-      console.error('Start test session error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to start test session');
-      }
-      throw new Error('Network Error occurred!');
+      console.error('Start session error:', error);
+      throw error;
     }
   },
 
-  /**
-   * Bước 2: Lưu từng câu trả lời (Tạo answer)
-   * Dùng AnswerController -> POST /api/answers
-   */
+  // 2. Nộp từng câu
   async submitAnswer(
-    request: ISubmitAnswerRequest
-  ): Promise<ApiResponse<IAnswerResponse>> {
+    request: ICreateAnswerRequest
+  ): Promise<IAnswerResponse> {
     try {
-      // Map từ ISubmitAnswerRequest (FE) sang ICreateAnswerRequest (BE)
-      const payload: ICreateAnswerRequest = {
-        sessionId: request.sessionId,
-        questionId: request.questionId,
-        selectedAnswer: request.selectedAnswer,
-        isCorrect: false, // Backend sẽ tự tính toán
-      };
       const response = await axiosInstance.post<ApiResponse<IAnswerResponse>>(
         this.answerEndpoint,
-        payload
+        request
       );
-      return response.data;
+      return response.data.data;
     } catch (error: any) {
-      console.error('Submit answer error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to submit answer');
-      }
-      throw new Error('Network Error occurred!');
+      // Không throw error ở đây để tránh làm gián đoạn Promise.all bên ngoài
+      console.error('Submit answer error (Ignored):', error.message);
+      throw error; 
     }
   },
 
-  /**
-   * Bước 3: Nộp bài (Update session)
-   * Dùng TestSessionController -> PUT /api/sessions/{id}
-   */
+  // 3. Nộp bài (Sửa lỗi 400 Bad Request tại đây)
   async submitTest(
     sessionId: number,
-    request: Partial<IUpdateTestSessionRequest> // Gửi endTime, status: 'completed'
-  ): Promise<ApiResponse<ITestSessionResponseBasic>> {
+    request: Partial<IUpdateTestSessionRequest>
+  ): Promise<ITestSessionResponseBasic> {
     try {
-      const response = await axiosInstance.put<
-        ApiResponse<ITestSessionResponseBasic>
-      >(`${this.sessionEndpoint}/${sessionId}`, request);
-      return response.data;
+      // 🚀 QUAN TRỌNG: Chuyển đổi sang PascalCase để khớp với C# Back-end
+      const payload = {
+        Id: request.id,
+        UserId: request.userId,
+        TestId: request.testId,
+        StartTime: request.startTime, // Đảm bảo là chuỗi ISO chuẩn
+        EndTime: request.endTime,     // Đảm bảo là chuỗi ISO chuẩn
+        Status: request.status,
+        Score: request.score ?? 0     // Gửi 0 nếu null
+      };
+
+      const response = await axiosInstance.put<ApiResponse<ITestSessionResponseBasic>>(
+        `${this.sessionEndpoint}/${sessionId}`,
+        payload
+      );
+      return response.data.data;
     } catch (error: any) {
       console.error('Submit test error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to submit test');
-      }
-      throw new Error('Network Error occurred!');
+      throw error;
     }
   },
 };

@@ -35,7 +35,8 @@ const ConfirmSubmitDialog: React.FC<ConfirmSubmitDialogProps> = ({
         Xác nhận nộp bài
       </DialogTitle>
       <DialogContent>
-        <DialogContentText sx={{ fontSize: '1rem' }}>
+        {/* 🚀 SỬA: Thêm component="div" để tránh lỗi <p> lồng <p> */}
+        <DialogContentText component="div" sx={{ fontSize: '1rem' }}>
           Bạn đã trả lời{' '}
           <strong>
             {answeredCount}/{totalQuestions}

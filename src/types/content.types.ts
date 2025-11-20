@@ -12,6 +12,7 @@ export interface ILessonResponse {
   createdById?: number;
   createdAt: string;
   resourceName?: string; 
+  resources?: IResourceResponse[];
 }
 
 export interface ILessonDetail {

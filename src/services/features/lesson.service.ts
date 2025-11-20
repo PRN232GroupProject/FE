@@ -5,20 +5,24 @@ import axiosInstance from '../constant/axiosInstance';
 export const lessonService = {
   lessonEndpoint: '/lessons',
 
-  async getLessonsByChapter(
-    chapterId: number
-  ): Promise<ApiResponse<ILessonResponse[]>> {
+  async getAllLessons(): Promise<ApiResponse<ILessonResponse[]>> {
+    try {
+      const response = await axiosInstance.get<ApiResponse<ILessonResponse[]>>(this.lessonEndpoint);
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  async getLessonsByChapter(chapterId: number): Promise<ApiResponse<ILessonResponse[]>> {
     try {
       const response = await axiosInstance.get<ApiResponse<ILessonResponse[]>>(
         `${this.lessonEndpoint}/chapter/${chapterId}`
       );
       return response.data;
     } catch (error: any) {
-      console.error('Get lessons by chapter error:', error);
       const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Fetching lessons failed');
-      }
+      if (apiError) throw new Error(apiError.message || 'Fetching lessons failed');
       throw new Error('Network Error occurred!');
     }
   },
@@ -30,11 +34,8 @@ export const lessonService = {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Get lesson detail error:', error);
       const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Fetching lesson detail failed');
-      }
+      if (apiError) throw new Error(apiError.message || 'Fetching lesson detail failed');
       throw new Error('Network Error occurred!');
     }
   },

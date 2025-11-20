@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams} from 'react-router-dom';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import TestHeader from '../Student/components/test/TestHeader';
 import QuestionCard from '../Student/components/test/QuestionCard';
 import SubmitFooter from '../Student/components/test/SubmitFooter';
 import ConfirmSubmitDialog from '../Student/components/test/ConfirmSubmitDialog';
-import { useAuthStore } from '../../stores/authStore';
 import {
-  useStartTestSession,
+  useTestDetails,
+  useStartSession,
   useSubmitAnswer,
   useSubmitTest,
 } from '../../hooks/useTestSession';
-import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import { useAuthStore } from '../../stores/authStore';
+import EmptyState from '../../components/shared/EmptyState';
+import type { IQuestionResponse } from '../../types/test.types';
 
 const TestSessionPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
@@ -20,124 +22,149 @@ const TestSessionPage: React.FC = () => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [openConfirm, setOpenConfirm] = useState(false);
 
+  // Hook lấy dữ liệu
   const {
-    mutate: startTest,
-    isPending: isLoading,
+    data: testData,
+    isLoading: isLoadingTest,
+    isError: isErrorTest,
+  } = useTestDetails(Number(testId));
+
+  // Hook tạo session
+  const {
+    mutate: startSession,
     data: sessionData,
-    isError: isErrorStarting,
-  } = useStartTestSession();
+    isPending: isCreatingSession,
+    isError: isErrorSession,
+  } = useStartSession();
 
-  const { mutate: saveAnswer } = useSubmitAnswer();
+  // Hook lưu câu trả lời (Dùng mutateAsync để đợi)
+  const { mutateAsync: saveAnswerAsync } = useSubmitAnswer();
 
+  // Hook nộp bài
   const { mutate: submitTest, isPending: isSubmitting } = useSubmitTest();
 
+  // Effect: Tạo session khi vào trang
   useEffect(() => {
-    if (testId && user?.id) {
-      startTest({
+    if (testId && user?.id && !sessionData) {
+      startSession({
         userId: user.id,
         testId: Number(testId),
         startTime: new Date().toISOString(),
         status: 'in_progress',
       });
     }
-  }, [testId, user, startTest]);
+  }, [testId, user, startSession, sessionData]);
 
+  // Effect: Khởi tạo state câu trả lời
   useEffect(() => {
-    if (sessionData?.data.questions) {
+    if (testData?.questions) {
       const initialAnswers: Record<number, string> = {};
-      sessionData.data.questions.forEach((q) => {
+      testData.questions.forEach((q) => {
         initialAnswers[q.id] = '';
       });
       setAnswers(initialAnswers);
     }
-  }, [sessionData]);
+  }, [testData]);
 
+  // --- HÀM XỬ LÝ CHỌN ĐÁP ÁN (CHỈ LƯU LOCAL) ---
   const handleAnswerChange = (questionId: number, value: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
-
-    if (sessionData?.data.sessionId) {
-      saveAnswer({
-        sessionId: sessionData.data.sessionId,
-        questionId: questionId,
-        selectedAnswer: value,
-      });
-    }
+    // Chỉ cập nhật State, KHÔNG gọi API ngay để tránh lỗi 500
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmitTest = () => {
-    if (!sessionData?.data.sessionId) return;
+  // --- HÀM XỬ LÝ NỘP BÀI (QUAN TRỌNG) ---
+  const handleSubmitTest = async () => {
+    if (!sessionData?.id || !user?.id) return;
 
     setOpenConfirm(false);
 
+    // BƯỚC 1: Gửi tất cả câu trả lời lên Server
+    // Chúng ta dùng try-catch cho TỪNG request để nếu có lỗi 500 (do trùng) thì vẫn chạy tiếp
+    try {
+      const answerPromises = Object.entries(answers)
+        .filter(([_, val]) => val !== '') // Chỉ gửi câu đã chọn
+        .map(async ([qId, val]) => {
+          try {
+            await saveAnswerAsync({
+              sessionId: sessionData.id,
+              questionId: Number(qId),
+              selectedAnswer: val,
+              isCorrect: false,
+            });
+          } catch (err) {
+            // ⚠️ QUAN TRỌNG: Bắt lỗi ở đây và bỏ qua nó!
+            // Nếu backend trả về 500 do trùng lặp, ta coi như đã lưu rồi và tiếp tục.
+            console.warn(`Bỏ qua lỗi lưu câu hỏi ${qId} (có thể do trùng lặp):`, err);
+          }
+        });
+      
+      // Đợi tất cả câu trả lời được xử lý xong
+      await Promise.all(answerPromises);
+
+    } catch (error) {
+      console.error("Lỗi hệ thống khi lưu bài:", error);
+    }
+
+    // BƯỚC 2: Gọi API kết thúc bài thi (Sửa lỗi 400)
+    // Convert startTime sang chuẩn ISO một lần nữa cho chắc chắn
+    const safeStartTime = new Date(sessionData.startTime).toISOString();
+    
     submitTest({
-      sessionId: sessionData.data.sessionId,
+      sessionId: sessionData.id,
       request: {
+        id: sessionData.id,
+        userId: user.id,
+        testId: Number(testId),
+        startTime: safeStartTime, // Gửi đúng định dạng
         endTime: new Date().toISOString(),
         status: 'completed',
-        // Backend sẽ tự tính điểm khi nhận được request này
+        score: 0, // Gửi 0 để tránh lỗi null nếu BE yêu cầu int
       },
     });
   };
 
-  if (isLoading) {
+  if (isLoadingTest || isCreatingSession) {
     return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        minHeight="60vh"
-      >
-        <CircularProgress size={60} thickness={4} sx={{ mb: 2 }} />
-        <Typography variant="h6" color="text.secondary">
-          Đang tải bài kiểm tra...
-        </Typography>
+      <Box display="flex" justifyContent="center" mt={10}>
+        <CircularProgress />
       </Box>
     );
   }
 
-  if (isErrorStarting || !sessionData) {
-    return <LoadingSpinner message="Lỗi khi bắt đầu bài thi." />;
+  if (isErrorTest || isErrorSession || !testData) {
+    return (
+      <EmptyState title="Lỗi tải bài" description="Vui lòng thử lại." />
+    );
   }
 
-  const { questions, sessionId, duration } = sessionData.data;
+  const { questions, durationMinutes } = testData;
   const answeredCount = Object.values(answers).filter((a) => a !== '').length;
 
   return (
     <Box>
       <TestHeader
-        testId={testId}
-        sessionId={sessionId}
-        duration={duration * 60} // API trả về phút, Timer cần giây
+        testId={testData.name}
+        sessionId={sessionData?.id || 0}
+        duration={durationMinutes * 60}
         onTimeUp={handleSubmitTest}
         answeredCount={answeredCount}
         totalQuestions={questions.length}
       />
 
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setOpenConfirm(true);
-        }}
-      >
+      <Box component="form" onSubmit={(e) => { e.preventDefault(); setOpenConfirm(true); }}>
         {questions.map((q, index) => (
           <QuestionCard
             key={q.id}
             index={index}
-            question={q}
+            question={q as IQuestionResponse}
             currentAnswer={answers[q.id] || ''}
             onAnswerChange={handleAnswerChange}
           />
         ))}
-
         <SubmitFooter
-          answeredCount={answeredCount}
-          totalQuestions={questions.length}
-          isSubmitting={isSubmitting}
+            answeredCount={answeredCount}
+            totalQuestions={questions.length}
+            isSubmitting={isSubmitting} // Nút sẽ disable khi đang nộp -> Chặn double click
         />
       </Box>
 

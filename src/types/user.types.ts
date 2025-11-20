@@ -5,6 +5,7 @@ export interface IUser {
   email: string;
   isActive: boolean;
   createdAt: string;
+  studentTestSessions?: IUserTestSession[];
 }
 
 export interface IUpdateProfileRequest {
@@ -16,4 +17,13 @@ export interface IChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+}
+
+export interface IUserTestSession {
+  id: number;
+  testId: number;
+  score?: number;
+  status: string;
+  startTime: string;
+  endTime?: string;
 }

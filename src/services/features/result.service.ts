@@ -1,10 +1,7 @@
-// src/services/features/result.service.ts
-// ⚠️ DỊCH VỤ NÀY ĐANG DÙNG ENDPOINT GIẢ ĐỊNH
 import type { ApiResponse } from '../../types/api.types';
 import type {
-  ITestResultResponse,
-  IStudentTestsResponse,
-  ITestAttempt, // Import type này
+  IStudentTestSessionResponse,
+  ITestAttempt,
 } from '../../types/test.types';
 import axiosInstance from '../constant/axiosInstance';
 
@@ -12,52 +9,28 @@ export const resultService = {
   sessionEndpoint: '/sessions',
   
   /**
-   * ⚠️ GIẢ ĐỊNH: Lấy kết quả chi tiết cho TestResultPage.tsx
+   * ✅ Endpoint THẬT: GET /api/sessions/{id}/answers
+   * Back-end: TestSessionController -> GetStudentAnswers(int id)
+   * Trả về: StudentTestSessionResponse (chứa danh sách câu trả lời)
    */
-  async getTestResult(
+  async getSessionAnswers(
     sessionId: number
-  ): Promise<ApiResponse<ITestResultResponse>> {
+  ): Promise<ApiResponse<IStudentTestSessionResponse>> {
     try {
-      const response = await axiosInstance.get<ApiResponse<ITestResultResponse>>(
-        `${this.sessionEndpoint}/${sessionId}/result` // ⚠️ GIẢ ĐỊNH
+      const response = await axiosInstance.get<ApiResponse<IStudentTestSessionResponse>>(
+        `${this.sessionEndpoint}/${sessionId}/answers`
       );
       return response.data;
     } catch (error: any) {
-      console.error('Get test result error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to fetch test result');
-      }
-      throw new Error('Network Error occurred!');
+      console.error('Get session answers error:', error);
+      throw error;
     }
   },
 
   /**
-   * ⚠️ GIẢ ĐỊNH: Lấy lịch sử tất cả bài test cho StudentResultsPage.tsx
-   * (Endpoint bạn gửi /user/{userId}/test/{testId} chỉ lấy cho 1 test)
-   * (Giả định endpoint này lấy TẤT CẢ)
-   */
-  async getTestHistory(
-    userId: number
-  ): Promise<ApiResponse<IStudentTestsResponse>> {
-    try {
-      const response = await axiosInstance.get<ApiResponse<IStudentTestsResponse>>(
-        `${this.sessionEndpoint}/user/${userId}/history` // ⚠️ GIẢ ĐỊNH
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error('Get test history error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to fetch test history');
-      }
-      throw new Error('Network Error occurred!');
-    }
-  },
-  
-  /**
-   * Dùng endpoint bạn đã cung cấp (GET /api/sessions/user/{userId}/test/{testId})
-   * Lấy lịch sử làm bài cho 1 user VÀ 1 test cụ thể
+   * ✅ Endpoint THẬT: GET /api/sessions/user/{userId}/test/{testId}
+   * Back-end: TestSessionController -> GetByUserAndTest
+   * Trả về: Danh sách các lần làm bài
    */
   async getAttemptsForTest(
     userId: number,
@@ -68,14 +41,9 @@ export const resultService = {
         `${this.sessionEndpoint}/user/${userId}/test/${testId}`
       );
       return response.data;
-    } catch (error: any)
-    {
+    } catch (error: any) {
       console.error('Get attempts for test error:', error);
-      const apiError = error.response?.data as ApiResponse<any>;
-      if (apiError) {
-        throw new Error(apiError.message || 'Failed to fetch test attempts');
-      }
-      throw new Error('Network Error occurred!');
+      throw error;
     }
   }
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import StudentLayout from './components/layouts/StudentLayout';
+import AdminLayout from './components/layouts/AdminLayout';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -8,7 +9,6 @@ import HomePage from './pages/Student/HomePage';
 import ProfilePage from './pages/Student/ProfilePage';
 import { useAuthStore } from './stores/authStore';
 
-// Lazy load các pages khác
 const LessonListPage = React.lazy(() => import('./pages/Student/LessonListPage'));
 const LessonPage = React.lazy(() => import('./pages/Student/LessonPage'));
 const TestListPage = React.lazy(() => import('./pages/Student/TestListPage'));
@@ -17,13 +17,17 @@ const TestResultPage = React.lazy(() => import('./pages/Student/TestResultPage')
 const ResourcesPage = React.lazy(() => import('./pages/Student/ResourcesPage'));
 const StudentResultsPage = React.lazy(() => import('./pages/Student/StudentResultsPage'));
 
+const AdminDashboard = React.lazy(() => import('./pages/Admin/DashBoardPage'));
+const AdminUserList = React.lazy(() => import('./pages/Admin/UserManagementPage'));
+const AdminLessonList = React.lazy(() => import('./pages/Admin/LessonManagementPage'));
+const AdminTestList = React.lazy(() => import('./pages/Admin/TestManagementPage'));
+
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   return (
     <React.Suspense fallback={<div>Loading...</div>}>
       <Routes>
-        {/* Public routes với StudentLayout */}
         <Route element={<StudentLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/lessons" element={<LessonListPage />} />
@@ -32,17 +36,15 @@ const App: React.FC = () => {
           <Route path="/resources" element={<ResourcesPage />} />
         </Route>
 
-        {/* Auth routes */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+          element={isAuthenticated ? <Navigate to={user?.role.toLowerCase() === 'admin' ? '/admin' : '/'} replace /> : <LoginPage />}
         />
         <Route
           path="/register"
           element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />}
         />
 
-        {/* Protected student routes */}
         <Route element={<ProtectedRoute allowedRoles={['student']} />}>
           <Route element={<StudentLayout />}>
             <Route path="/profile" element={<ProfilePage />} />
@@ -52,7 +54,15 @@ const App: React.FC = () => {
           </Route>
         </Route>
 
-        {/* Fallback */}
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUserList />} />
+            <Route path="lessons" element={<AdminLessonList />} />
+            <Route path="tests" element={<AdminTestList />} />
+          </Route>
+        </Route>
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </React.Suspense>
