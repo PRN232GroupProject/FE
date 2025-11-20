@@ -11,7 +11,7 @@ import {
   useSubmitAnswer,
   useSubmitTest,
 } from '../../hooks/useTestSession';
-import { useAuthStore } from '../../stores/authStore';
+import { userService } from '../../services/features/user.service';
 import EmptyState from '../../components/shared/EmptyState';
 import type { IQuestionResponse } from '../../types/test.types';
 
@@ -57,15 +57,15 @@ const TestSessionPage: React.FC = () => {
 
   // Effect: Tạo session khi vào trang
   useEffect(() => {
-    if (testId && user?.id && !sessionData) {
+    if (testId && userId && !sessionData) {
       startSession({
-        userId: user.id,
+        userId: userId,
         testId: Number(testId),
         startTime: new Date().toISOString(),
         status: 'in_progress',
       });
     }
-  }, [testId, user, startSession, sessionData]);
+  }, [testId, userId, startSession, sessionData]);
 
   // Effect: Khởi tạo state câu trả lời
   useEffect(() => {
@@ -86,7 +86,7 @@ const TestSessionPage: React.FC = () => {
 
   // --- HÀM XỬ LÝ NỘP BÀI (QUAN TRỌNG) ---
   const handleSubmitTest = async () => {
-    if (!sessionData?.id || !user?.id) return;
+    if (!sessionData?.id || !userId) return;
 
     setOpenConfirm(false);
 
@@ -125,7 +125,7 @@ const TestSessionPage: React.FC = () => {
       sessionId: sessionData.id,
       request: {
         id: sessionData.id,
-        userId: user.id,
+        userId: userId,
         testId: Number(testId),
         startTime: safeStartTime, // Gửi đúng định dạng
         endTime: new Date().toISOString(),

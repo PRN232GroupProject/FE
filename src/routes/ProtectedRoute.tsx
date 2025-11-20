@@ -53,7 +53,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
       console.log('❌ Access denied - redirecting...');
       // Redirect based on user's actual role
       if (role === 'admin') {
-        return <Navigate to="/admin/questions" replace />;
+        return <Navigate to="/admin" replace />;
       } else if (role === 'staff') {
         return <Navigate to="/staff/dashboard" replace />;
       } else {

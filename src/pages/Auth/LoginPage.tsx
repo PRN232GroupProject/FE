@@ -40,17 +40,13 @@ const LoginPage: React.FC = () => {
         password: data.password,
       });
 
-      const responseData = res.data;
-      const token = responseData.token; 
-      const apiRole = responseData.role; 
-
       const { role } = loginResponse.data;
 
       // Navigate based on role
       if (role.toLowerCase() === 'student') {
         navigate('/');
       } else if (role.toLowerCase() === 'admin') {
-        navigate('/admin/questions');
+        navigate('/admin');
       } else {
         navigate('/staff/dashboard');
       }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import adminTheme from '../../theme/adminTheme';
@@ -10,7 +10,9 @@ import {
   Dashboard, People, School, Quiz, Menu as MenuIcon, 
   Logout, School as SchoolIcon
 } from '@mui/icons-material';
-import { useAuthStore } from '../../stores/authStore';
+import { authService } from '../../services/features/auth.service';
+import { userService } from '../../services/features/user.service';
+import type { IUser } from '../../types/user.types';
 
 const DRAWER_WIDTH = 260;
 const THEME_COLOR = '#004280'; // Màu chủ đạo chung
@@ -18,10 +20,22 @@ const THEME_COLOR = '#004280'; // Màu chủ đạo chung
 const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const [user, setUser] = useState<IUser | null>(null);
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await userService.getCurrentUser();
+        setUser(response.data);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const menuItems = [
     { text: 'Tổng quan', icon: <Dashboard />, path: '/admin' },
@@ -30,8 +44,8 @@ const AdminLayout: React.FC = () => {
     { text: 'Quản lý Bài test', icon: <Quiz />, path: '/admin/tests' },
   ];
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await authService.logout();
     navigate('/login');
   };
 

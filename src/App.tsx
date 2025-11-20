@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import StudentLayout from './components/layouts/StudentLayout';
 import AdminLayout from './components/layouts/AdminLayout';
@@ -11,6 +11,9 @@ import ProfilePage from './pages/Student/ProfilePage';
 import ContentManagementPage from './pages/Staff/ContentManagementPage';
 import ResourceManagementPage from './pages/Staff/ResourceManagementPage';
 import DashboardPage from './pages/Staff/DashboardPage';
+import { authService } from './services/features/auth.service';
+import { userService } from './services/features/user.service';
+import type { IUser } from './types/user.types';
 
 const LessonListPage = React.lazy(() => import('./pages/Student/LessonListPage'));
 const LessonPage = React.lazy(() => import('./pages/Student/LessonPage'));
@@ -26,7 +29,26 @@ const AdminLessonList = React.lazy(() => import('./pages/Admin/LessonManagementP
 const AdminTestList = React.lazy(() => import('./pages/Admin/TestManagementPage'));
 
 const App: React.FC = () => {
-  const { isAuthenticated, user } = useAuthStore();
+  const [user, setUser] = useState<IUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = authService.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      
+      if (authenticated) {
+        try {
+          const response = await userService.getCurrentUser();
+          setUser(response.data);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+          setIsAuthenticated(false);
+        }
+      }
+    };
+    checkAuth();
+  }, []);
 
   return (
     <React.Suspense fallback={<div>Loading...</div>}>

@@ -9,12 +9,12 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import PageHeader from '../../components/shared/PageHeader';
 import ResultStatsCard from './components/results/ResultStatsCard';
 import ResultsTable from './components/results/ResultsTable';
-import { useAuthStore } from '../../stores/authStore'; 
+import { useCurrentUser } from '../../hooks/useUser';
 import { useTestHistory, useTestList } from '../../hooks/useTestData'; // 🚀 Thêm useTestList
 import EmptyState from '../../components/shared/EmptyState';
 
 const StudentResultsPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { data: user } = useCurrentUser();
   const [typeFilter, setTypeFilter] = useState('all'); // State lọc loại bài thi
 
   // 1. Lấy lịch sử (đã lọc latest trong utils)
