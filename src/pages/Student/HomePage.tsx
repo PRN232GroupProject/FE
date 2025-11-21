@@ -23,7 +23,6 @@ const HomePage: React.FC = () => {
     isError,
   } = useChapters();
 
-  // ✅ FIX: Lấy tất cả resources để tính progress
   const {
     data: allResources,
     isLoading: isLoadingResources,
@@ -44,7 +43,6 @@ const HomePage: React.FC = () => {
     fetchCurrentUser();
   }, []);
 
-  // 🚀 Filter chapters
   const filteredChapters = useMemo(() => {
     const baseChapters = allChapters || [];
 
@@ -59,9 +57,7 @@ const HomePage: React.FC = () => {
     );
   }, [allChapters, selectedGrade, searchTerm]);
 
-  // ✅ FIX: Tính progress từ allResources - CHỈ KHI CÓ USER
   const chaptersWithProgress = useMemo(() => {
-    // ⚠️ QUAN TRỌNG: Nếu chưa login -> progress = 0
     if (!currentUser || !currentUser.id || currentUser.id <= 0) {
       return filteredChapters.map(ch => ({ 
         ...ch, 
@@ -78,7 +74,6 @@ const HomePage: React.FC = () => {
       }));
     }
 
-    // Tạo map: lessonId -> completed resources count
     const lessonProgressMap = new Map<number, { total: number; completed: number }>();
     
     allResources.forEach((resource) => {
