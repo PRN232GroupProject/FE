@@ -7,7 +7,7 @@ import WelcomeBanner from './components/home/WelcomeBanner';
 import GradeFilterTabs from './components/home/GradeFilterTabs';
 import SearchBar from './components/home/SearchBar';
 import ChapterCard from './components/home/ChapterCard';
-import { useChapters } from '../../hooks/useContent';
+import { useChapters, useAllResources } from '../../hooks/useContent';
 import { userService } from '../../services/features/user.service';
 import type { IUser } from '../../types/user.types';
 
@@ -19,9 +19,15 @@ const HomePage: React.FC = () => {
 
   const {
     data: allChapters,
-    isLoading,
+    isLoading: isLoadingChapters,
     isError,
   } = useChapters();
+
+  // ✅ FIX: Lấy tất cả resources để tính progress
+  const {
+    data: allResources,
+    isLoading: isLoadingResources,
+  } = useAllResources();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -38,34 +44,50 @@ const HomePage: React.FC = () => {
     fetchCurrentUser();
   }, []);
 
-  // 🚀 Tối ưu hóa việc filter bằng useMemo
+  // 🚀 Filter chapters
   const filteredChapters = useMemo(() => {
     const baseChapters = allChapters || [];
 
-    // Lọc theo Lớp (Grade)
     const gradeFilter =
       selectedGrade === 'all' ? null : parseInt(selectedGrade);
     const filteredByGrade = gradeFilter
       ? baseChapters.filter((c) => c.grade === gradeFilter)
       : baseChapters;
 
-    // Lọc theo Tìm kiếm (Search)
     return filteredByGrade.filter((chapter) =>
       chapter.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allChapters, selectedGrade, searchTerm]);
 
-  // ✅ FIX: Tính progress từ dữ liệu thật
+  // ✅ FIX: Tính progress từ allResources
   const chaptersWithProgress = useMemo(() => {
+    if (!allResources) return filteredChapters.map(ch => ({ ...ch, completedLessons: 0, progress: 0 }));
+
+    // Tạo map: lessonId -> completed resources count
+    const lessonProgressMap = new Map<number, { total: number; completed: number }>();
+    
+    allResources.forEach((resource) => {
+      const existing = lessonProgressMap.get(resource.lessonId) || { total: 0, completed: 0 };
+      existing.total++;
+      if (resource.isCompleted) {
+        existing.completed++;
+      }
+      lessonProgressMap.set(resource.lessonId, existing);
+    });
+
     return filteredChapters.map((chapter) => {
       let totalLessons = chapter.lessons.length;
       let completedCount = 0;
 
-      // ✅ Tính từ resources đã completed trong lessons
+      // Đếm lessons đã hoàn thành
       chapter.lessons.forEach((lesson) => {
-        if (lesson.resources && lesson.resources.length > 0) {
-          const allCompleted = lesson.resources.every((r) => r.isCompleted);
-          if (allCompleted) completedCount++;
+        const lessonProgress = lessonProgressMap.get(lesson.id);
+        
+        if (lessonProgress && lessonProgress.total > 0) {
+          // Lesson hoàn thành khi TẤT CẢ resources đều completed
+          if (lessonProgress.completed === lessonProgress.total) {
+            completedCount++;
+          }
         }
       });
 
@@ -77,9 +99,11 @@ const HomePage: React.FC = () => {
         progress: Math.round(progress),
       };
     });
-  }, [filteredChapters]);
+  }, [filteredChapters, allResources]);
 
-  if (isLoading || userLoading) {
+  const isLoading = isLoadingChapters || isLoadingResources || userLoading;
+
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
@@ -123,7 +147,6 @@ const HomePage: React.FC = () => {
           lg: '1fr 1fr 1fr',
         }}
       >
-        {/* ✅ Map qua chapters với progress thật */}
         {chaptersWithProgress.map((chapter) => (
           <ChapterCard
             key={chapter.id}

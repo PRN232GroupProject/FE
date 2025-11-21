@@ -1,18 +1,70 @@
-import React from 'react'; 
+import React, { useMemo } from 'react'; 
 import { Box, Paper, Typography } from '@mui/material';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import PageHeader from '../../components/shared/PageHeader';
 import ChapterAccordion from './components/lesson-list/ChapterAccordion';
-import { useChapters } from '../../hooks/useContent'; 
+import { useChapters, useAllResources } from '../../hooks/useContent'; 
 import EmptyState from '../../components/shared/EmptyState'; 
 import { School as SchoolIcon } from '@mui/icons-material'; 
 
 const LessonListPage: React.FC = () => {
   const {
     data: chapters, 
-    isLoading, 
+    isLoading: isLoadingChapters, 
     isError, 
   } = useChapters();
+
+  // ✅ FIX: Lấy tất cả resources để tính progress
+  const {
+    data: allResources,
+    isLoading: isLoadingResources,
+  } = useAllResources();
+
+  // ✅ FIX: Tính progress từ allResources  
+  const chaptersWithProgress = useMemo(() => {
+    if (!chapters || !allResources) return [];
+
+    // Tạo map: lessonId -> {total, completed}
+    const lessonProgressMap = new Map<number, { total: number; completed: number }>();
+    
+    allResources.forEach((resource) => {
+      const existing = lessonProgressMap.get(resource.lessonId) || { total: 0, completed: 0 };
+      existing.total++;
+      if (resource.isCompleted) {
+        existing.completed++;
+      }
+      lessonProgressMap.set(resource.lessonId, existing);
+    });
+
+    return chapters.map((chapter) => {
+      let totalLessons = chapter.lessons.length;
+      let completedCount = 0;
+
+      // Đếm lessons hoàn thành
+      chapter.lessons.forEach((lesson) => {
+        const lessonProgress = lessonProgressMap.get(lesson.id);
+        
+        if (lessonProgress && lessonProgress.total > 0) {
+          // Lesson hoàn thành = tất cả resources completed
+          if (lessonProgress.completed === lessonProgress.total) {
+            completedCount++;
+          }
+        }
+      });
+
+      const progress = totalLessons > 0 
+        ? Math.round((completedCount / totalLessons) * 100)
+        : 0;
+
+      return {
+        chapter,
+        completedCount,
+        progress,
+      };
+    });
+  }, [chapters, allResources]);
+
+  const isLoading = isLoadingChapters || isLoadingResources;
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -54,35 +106,15 @@ const LessonListPage: React.FC = () => {
           Nội dung khóa học
         </Typography>
 
-        {chapters.map((chapter, index) => {
-          // ✅ FIX: Tính progress từ dữ liệu thật
-          let totalLessons = chapter.lessons.length;
-          let completedCount = 0;
-
-          // Tính completed từ resources
-          chapter.lessons.forEach((lesson) => {
-            if (lesson.resources && lesson.resources.length > 0) {
-              const allCompleted = lesson.resources.every((r) => r.isCompleted);
-              if (allCompleted) {
-                completedCount++;
-              }
-            }
-          });
-
-          const progress = totalLessons > 0 
-            ? Math.round((completedCount / totalLessons) * 100)
-            : 0;
-
-          return (
-            <ChapterAccordion
-              key={chapter.id}
-              chapter={chapter}
-              completedLessons={completedCount}
-              progress={progress}
-              defaultExpanded={index === 0} 
-            />
-          );
-        })}
+        {chaptersWithProgress.map(({ chapter, completedCount, progress }, index) => (
+          <ChapterAccordion
+            key={chapter.id}
+            chapter={chapter}
+            completedLessons={completedCount}
+            progress={progress}
+            defaultExpanded={index === 0} 
+          />
+        ))}
       </Paper>
     </Box>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'; 
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Paper, Card, CardContent, Typography, Stack, Chip, Button, alpha } from '@mui/material';
 import {
   Description as DescriptionIcon,
@@ -15,6 +15,7 @@ import { useLessonDetail, useMarkResourceCompleted } from '../../hooks/useConten
 
 const LessonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate(); // ✅ Thêm dòng này
   const lessonId = Number(id); 
 
   const {
@@ -166,23 +167,39 @@ const LessonPage: React.FC = () => {
             onSelectResource={setSelectedResource}
           />
 
-          {/* Test Button */}
-          <Paper elevation={2} sx={{ mt: 2, p: 2, borderRadius: 3, textAlign: 'center' }}>
-            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600 }}>
-              Đã hoàn thành bài học?
+          {/* ✅ FIX: 2 nút navigation */}
+          <Paper elevation={2} sx={{ mt: 2, p: 2, borderRadius: 3 }}>
+            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 600, textAlign: 'center' }}>
+              Hoàn thành bài học?
             </Typography>
-            <Button
-              variant="contained"
-              fullWidth
-              startIcon={<PlayArrowIcon />}
-              sx={{ mt: 1, borderRadius: 2, py: 1.2 }}
-              disabled={progress < 100}
-            >
-              Làm bài kiểm tra
-            </Button>
+            
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              {/* Nút 1: Về trang chủ */}
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => navigate('/')}
+                sx={{ borderRadius: 2, py: 1.2 }}
+              >
+                Về trang chủ
+              </Button>
+
+              {/* Nút 2: Làm bài kiểm tra */}
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<PlayArrowIcon />}
+                onClick={() => navigate('/tests')}
+                sx={{ borderRadius: 2, py: 1.2 }}
+                disabled={progress < 100}
+              >
+                Làm bài kiểm tra
+              </Button>
+            </Stack>
+
             {progress < 100 && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                Hoàn thành tất cả tài liệu để mở khóa
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
+                Hoàn thành tất cả tài liệu để mở khóa bài kiểm tra
               </Typography>
             )}
           </Paper>

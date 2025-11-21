@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Paper,
   Box,
@@ -9,6 +9,7 @@ import {
   InputAdornment,
   Stack,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 import {
@@ -17,12 +18,17 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
+  Lock as LockIcon,
+  Visibility,
+  VisibilityOff,
 } from '@mui/icons-material';
 
 export interface ProfileFormData {
   fullName: string;
   email: string;
-  grade?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
 }
 
 interface ProfileFormProps {
@@ -33,6 +39,7 @@ interface ProfileFormProps {
   onEdit: () => void;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => void;
+  isChangingPassword: boolean;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({
@@ -43,7 +50,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   onEdit,
   onCancel,
   onSubmit,
+  isChangingPassword,
 }) => {
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   return (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
       <Box
@@ -67,14 +79,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
       <Divider sx={{ mb: 3 }} />
 
       <form onSubmit={onSubmit}>
-        <Box
-          display="grid"
-          gap={3}
-          gridTemplateColumns={{
-            xs: '1fr',
-            sm: '1fr 1fr',
-          }}
-        >
+        <Box display="grid" gap={3}>
           {/* Full Name */}
           <TextField
             label="Họ và tên"
@@ -92,11 +97,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             helperText={errors.fullName?.message}
           />
 
-          {/* Email */}
+          {/* Email - Read Only */}
           <TextField
             label="Email"
             fullWidth
-            disabled={!isEditing}
+            disabled
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -105,18 +110,103 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
               ),
             }}
             {...register('email')}
-            error={!!errors.email}
-            helperText={errors.email?.message}
+            helperText="Email không thể thay đổi"
           />
+
+          {/* ✅ Password Section - Only show when editing */}
+          {isEditing && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                Đổi mật khẩu (tùy chọn)
+              </Typography>
+
+              {/* Current Password */}
+              <TextField
+                label="Mật khẩu hiện tại"
+                fullWidth
+                type={showCurrentPassword ? 'text' : 'password'}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        edge="end"
+                      >
+                        {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                {...register('currentPassword')}
+                error={!!errors.currentPassword}
+                helperText={errors.currentPassword?.message}
+              />
+
+              {/* New Password */}
+              <TextField
+                label="Mật khẩu mới"
+                fullWidth
+                type={showNewPassword ? 'text' : 'password'}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                {...register('newPassword')}
+                error={!!errors.newPassword}
+                helperText={errors.newPassword?.message || 'Tối thiểu 6 ký tự'}
+              />
+
+              {/* Confirm Password */}
+              <TextField
+                label="Xác nhận mật khẩu mới"
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                {...register('confirmPassword')}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+              />
+            </>
+          )}
 
           {/* Action Buttons */}
           {isEditing && (
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="flex-end"
-              sx={{ gridColumn: { sm: 'span 2' } }}
-            >
+            <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
               <Button
                 variant="outlined"
                 color="inherit"

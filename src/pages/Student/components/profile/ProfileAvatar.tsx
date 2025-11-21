@@ -17,6 +17,19 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ fullName, role, joinedDat
       .slice(0, 2);
   };
 
+  // ✅ FIX: Role mapping đúng
+  const getRoleLabel = (role: string) => {
+    const roleMap: Record<string, string> = {
+      'student': 'Học sinh',
+      'Student': 'Học sinh',
+      'staff': 'Giáo viên',
+      'Staff': 'Giáo viên',
+      'admin': 'Quản trị viên',
+      'Admin': 'Quản trị viên',
+    };
+    return roleMap[role] || role;
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3, textAlign: 'center', height: '100%', borderRadius: 3 }}>
       <Avatar
@@ -37,7 +50,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ fullName, role, joinedDat
         {fullName}
       </Typography>
       <Chip
-        label={role === 'student' ? 'Học sinh' : 'Quản trị viên'}
+        label={getRoleLabel(role)}
         color="primary"
         sx={{ mb: 2, fontWeight: 600 }}
       />
