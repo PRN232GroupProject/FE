@@ -10,7 +10,6 @@ export interface IUser {
 
 export interface IUpdateProfileRequest {
   fullName: string;
-  email: string;
 }
 
 export interface IChangePasswordRequest {

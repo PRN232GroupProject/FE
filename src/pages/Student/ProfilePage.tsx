@@ -73,7 +73,8 @@ const ProfilePage: React.FC = () => {
     if (!currentUser) return;
 
     try {
-      await updateUser(data);
+      // Only send fullName to the API, not email
+      await updateUser({ fullName: data.fullName });
       setSuccess('Cập nhật thông tin thành công!');
       setIsEditing(false);
     } catch (err: any) {

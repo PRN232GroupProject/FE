@@ -39,7 +39,6 @@ interface ProfileFormProps {
   onEdit: () => void;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => void;
-  isChangingPassword: boolean;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({
@@ -50,7 +49,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   onEdit,
   onCancel,
   onSubmit,
-  isChangingPassword,
 }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
