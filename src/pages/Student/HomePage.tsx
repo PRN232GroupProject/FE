@@ -59,9 +59,24 @@ const HomePage: React.FC = () => {
     );
   }, [allChapters, selectedGrade, searchTerm]);
 
-  // ✅ FIX: Tính progress từ allResources
+  // ✅ FIX: Tính progress từ allResources - CHỈ KHI CÓ USER
   const chaptersWithProgress = useMemo(() => {
-    if (!allResources) return filteredChapters.map(ch => ({ ...ch, completedLessons: 0, progress: 0 }));
+    // ⚠️ QUAN TRỌNG: Nếu chưa login -> progress = 0
+    if (!currentUser || !currentUser.id || currentUser.id <= 0) {
+      return filteredChapters.map(ch => ({ 
+        ...ch, 
+        completedLessons: 0, 
+        progress: 0 
+      }));
+    }
+
+    if (!allResources) {
+      return filteredChapters.map(ch => ({ 
+        ...ch, 
+        completedLessons: 0, 
+        progress: 0 
+      }));
+    }
 
     // Tạo map: lessonId -> completed resources count
     const lessonProgressMap = new Map<number, { total: number; completed: number }>();
@@ -99,7 +114,7 @@ const HomePage: React.FC = () => {
         progress: Math.round(progress),
       };
     });
-  }, [filteredChapters, allResources]);
+  }, [filteredChapters, allResources, currentUser]);
 
   const isLoading = isLoadingChapters || isLoadingResources || userLoading;
 

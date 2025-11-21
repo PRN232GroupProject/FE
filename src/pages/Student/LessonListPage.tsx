@@ -4,6 +4,7 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import PageHeader from '../../components/shared/PageHeader';
 import ChapterAccordion from './components/lesson-list/ChapterAccordion';
 import { useChapters, useAllResources } from '../../hooks/useContent'; 
+import { useCurrentUser } from '../../hooks/useUser'; // ✅ Import useCurrentUser
 import EmptyState from '../../components/shared/EmptyState'; 
 import { School as SchoolIcon } from '@mui/icons-material'; 
 
@@ -20,8 +21,20 @@ const LessonListPage: React.FC = () => {
     isLoading: isLoadingResources,
   } = useAllResources();
 
-  // ✅ FIX: Tính progress từ allResources  
+  // Hook lấy thông tin user
+  const { data: currentUser } = useCurrentUser();
+
+  // ✅ FIX: Tính progress từ allResources - CHỈ KHI CÓ USER
   const chaptersWithProgress = useMemo(() => {
+    // ⚠️ QUAN TRỌNG: Nếu chưa login -> progress = 0
+    if (!currentUser || !currentUser.id || currentUser.id <= 0) {
+      return chapters ? chapters.map(chapter => ({
+        chapter,
+        completedCount: 0,
+        progress: 0,
+      })) : [];
+    }
+
     if (!chapters || !allResources) return [];
 
     // Tạo map: lessonId -> {total, completed}
@@ -62,7 +75,7 @@ const LessonListPage: React.FC = () => {
         progress,
       };
     });
-  }, [chapters, allResources]);
+  }, [chapters, allResources, currentUser]);
 
   const isLoading = isLoadingChapters || isLoadingResources;
 

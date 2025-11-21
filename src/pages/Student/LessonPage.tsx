@@ -11,12 +11,16 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import EmptyState from '../../components/shared/EmptyState';
 import ResourcePlayer from './components/lesson/ResourcePlayer';
 import ResourceSidebar from './components/lesson/ResourceSideBar';
-import { useLessonDetail, useMarkResourceCompleted } from '../../hooks/useContent'; 
+import { useLessonDetail, useMarkResourceCompleted } from '../../hooks/useContent';
+import { useCurrentUser } from '../../hooks/useUser'; // ✅ Import useCurrentUser
 
 const LessonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate(); // ✅ Thêm dòng này
-  const lessonId = Number(id); 
+  const navigate = useNavigate();
+  const lessonId = Number(id);
+
+  // ✅ Lấy thông tin user để check authentication
+  const { data: user, isLoading: isLoadingUser } = useCurrentUser();
 
   const {
     data: lesson,
@@ -29,16 +33,21 @@ const LessonPage: React.FC = () => {
 
   const [selectedResource, setSelectedResource] = useState<IResource | null>(null);
 
-  // ✅ FIX: Tính completed resources từ dữ liệu THẬT (không fake nữa)
-  const completedResourcesList = useMemo(
-    () => (lesson?.resources || []).filter((r) => r.isCompleted).map((r) => r.id),
-    [lesson]
-  );
+  // ✅ Tính completed resources từ dữ liệu THẬT - CHỈ KHI CÓ USER
+  const completedResourcesList = useMemo(() => {
+    // ⚠️ QUAN TRỌNG: Nếu chưa login -> không có resources completed
+    if (!user || !user.id || user.id <= 0) {
+      return [];
+    }
+    
+    return (lesson?.resources || []).filter((r) => r.isCompleted).map((r) => r.id);
+  }, [lesson, user]);
 
   const totalResources = lesson?.resources?.length || 0;
 
-  // ✅ FIX: Progress tính từ dữ liệu thật, sẽ tự update khi mark complete
+  // ✅ Progress tính từ dữ liệu thật - LUÔN = 0 KHI CHƯA LOGIN
   const progress =
+    (!user || !user.id || user.id <= 0) ? 0 :
     totalResources > 0
       ? Math.round((completedResourcesList.length / totalResources) * 100)
       : 0;
@@ -52,12 +61,24 @@ const LessonPage: React.FC = () => {
     }
   }, [lesson, selectedResource]); 
 
-  // ✅ FIX: Handle mark complete với callback
+  // ✅ FIX: Handle mark complete với authentication check
   const handleResourceComplete = (resourceId: number) => {
+    // Kiểm tra user đã login chưa
+    if (!user || !user.id || user.id <= 0) {
+      // Chưa login -> redirect đến login page
+      navigate('/login', { 
+        state: { 
+          from: `/lesson/${lessonId}`,
+          message: 'Vui lòng đăng nhập để đánh dấu tài liệu đã hoàn thành'
+        } 
+      });
+      return;
+    }
+
+    // Đã login -> mark complete
     markAsComplete(resourceId, {
       onSuccess: () => {
         console.log('✅ Resource marked complete, UI will auto-update via invalidateQueries');
-        // Không cần setState gì thêm, useQuery sẽ tự refetch
       },
       onError: (error) => {
         console.error('❌ Failed to mark complete:', error);
@@ -65,7 +86,7 @@ const LessonPage: React.FC = () => {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingUser) {
     return <LoadingSpinner />;
   }
 
@@ -123,7 +144,7 @@ const LessonPage: React.FC = () => {
                       width: `${progress}%`, 
                       height: '100%',
                       bgcolor: 'white',
-                      transition: 'width 0.5s ease', // Smooth animation
+                      transition: 'width 0.5s ease',
                     }}
                   />
                 </Box>
@@ -189,7 +210,19 @@ const LessonPage: React.FC = () => {
                 variant="contained"
                 fullWidth
                 startIcon={<PlayArrowIcon />}
-                onClick={() => navigate('/tests')}
+                onClick={() => {
+                  // ✅ Check authentication trước khi vào test
+                  if (!user || !user.id || user.id <= 0) {
+                    navigate('/login', { 
+                      state: { 
+                        from: `/tests`,
+                        message: 'Vui lòng đăng nhập để làm bài kiểm tra'
+                      } 
+                    });
+                  } else {
+                    navigate('/tests');
+                  }
+                }}
                 sx={{ borderRadius: 2, py: 1.2 }}
                 disabled={progress < 100}
               >
@@ -200,6 +233,13 @@ const LessonPage: React.FC = () => {
             {progress < 100 && (
               <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block', textAlign: 'center' }}>
                 Hoàn thành tất cả tài liệu để mở khóa bài kiểm tra
+              </Typography>
+            )}
+            
+            {/* ✅ Thông báo cho user chưa login */}
+            {(!user || !user.id || user.id <= 0) && (
+              <Typography variant="caption" color="warning.main" sx={{ mt: 1, display: 'block', textAlign: 'center', fontWeight: 600 }}>
+                💡 Đăng nhập để lưu tiến độ học tập
               </Typography>
             )}
           </Paper>
